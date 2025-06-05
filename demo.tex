@@ -21,6 +21,10 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{comment}
+\usepackage{xcolor}
+\usepackage{setspace}
+\definecolor{mustardyellow}{RGB}{255, 219, 88}
+\definecolor{customviolet}{RGB}{143, 0, 255}
 \author{Heinz, Paula}
 \advisor{Prof.\ Dr.\ Stephan Held}
 \title{Congestion-\& Timing-Aware Pin Assignment with Multiply-Instantiated Blocks}
@@ -30,6 +34,7 @@
 
 % This is just for making the picture placeholder
 \newcommand{\emptybox}[2]{\framebox[#1]{\rule{0pt}{#2}}}
+
 
 % This is just for putting the bibliography in a single file
 \bibliographystyle{alpha}
@@ -388,19 +393,17 @@
 \end{filecontents}
 
 \begin{document}
+
   \maketitle
   \begin{blockrow}[3]
-    \blocktitle{Introduction}
+    \blocktitle{Port Assignment without Reuse Blocks}
     	\begin{minipage}{0.45\blockwidth}
     	 Large integrated circuits are often partitioned into multiple blocks
-    	to reduce tool running times and  parallelize the design process. Pin
+    	to reduce tool running times and  parallelize the design process. Port
     	assignment defines positions and shapes for the interface pins of the
-    	blocks.  It has a big impact on signal speeds and routability.
+    	blocks. It has a big impact on signal speeds and routability.
     
-    	Pangea is tailored but not limited to a setting, where the
-    	circuit is sliced into almost abutting blocks that ``own'' the
-    	complete metal stack above their area, which is employed for example
-    	on IBM microprocessors \cite{kazda+pangea:21}.
+    
     \end{minipage}\hspace{0.09\blockwidth}%
     \begin{minipage}{0.45\blockwidth}
     	\begin{tikzpicture}[scale=0.4]
@@ -421,6 +424,25 @@
     		\draw[-] (root) -- (port3) -- (port4) -- (sink2);
     	\end{tikzpicture}
     \end{minipage}\\
+
+ \label{sec:modfied_global;_routing}
+ The goal is to achieve a pin assignment with the following properties:
+ \begin{enumerate}
+ 	\item \textbf{low inter-block dependency} (i.e. few ports)
+ 	\item \textbf{enable fast signals} (ports lying on shortest source-to-sink path)
+ 	\item \textbf{short total net length/small power consumption}
+ 	\item \textbf{prevent routing congestion} (ports spread out)
+ \end{enumerate}
+ BonnPangea is tailored but not limited to a setting, where the
+ circuit is sliced into almost abutting blocks that ``own'' the
+ complete metal stack above their area, which is employed for example
+ on IBM microprocessors \cite{kazda+pangea:21}.
+Our general approach for pin assignment is to run global routing with
+global static timing constraints \cite{BRGTiming2}. Then, track
+assignment \cite{BatterywalaTrackAssign,duran:2024} is used  to legalize wires crossing block borders in a DRC \& LVS clean way.
+Pin positions and shapes are simply cut from the legalized wires.
+Preliminaries of this section can be found in \cite{kazda+pangea:21}. 
+
 \begin{comment}
 	
 
@@ -445,30 +467,97 @@
   \blockbreak
 \end{comment}
 \blockbreak
-  \blocktitle{Routing Modifications  for Pin Assignement}
-  \label{sec:modfied_global;_routing}
-  Our general approach for pin assignment is to run global routing with
-  global static timing constraints \cite{BRGTiming2}. Then, track
-  assignment \cite{BatterywalaTrackAssign,duran:2024} is used  to legalize wires crossing block borders in a DRC \& LVS clean way.
-  Pin positions and shapes are simply cut from the legalized wires.
-  Preliminaries of this section can be found in \cite{kazda+pangea:21}. 
-  
+  \blocktitle{Routing Modifications  for Pin Assignment}
+ 
   \textbf{Border Blockages \& Adjusted Tiles}
   \label{sec:tiles_n_border_blockages}
   To enable easy track assignment and extraction of pin assignments,  wires
   need to  cross block boundaries with straight segments  w/o interference by vias or jogs near the border.
   We forbid any jogs in global routing and track assignment.
   
-  To prevent vias, we insert a small corridor of blockages parallel to
-  block boundaries on all layers whose preference direction is parallel
+ \begin{minipage}{0.5\blockwidth}
+ 	
+ To prevent vias, we insert a small corridor of blockages parallel to
+  block boundaries, slightly extending beyond them, on all layers whose preference direction is parallel
   to the boundary.
+  
+  If two blocks are neighboring, we ensure that the border blockages are filling the  gap between them.
+  \end{minipage} 
+\hfill
+   \begin{minipage}{0.3\blockwidth}
+   	
+   \centering
+  
+	\begin{tikzpicture}[scale=0.6]
+		\clip (3,1.3) rectangle (8,3.5);
+		% clusters
+		\draw[thick,dashed,red] (0,5) -- (0,2.5) -- (6,2.5) -- (6,5);
+		\draw[thick,dashed,green] (6.5,5) -- (6.5,2.5) -- (12.5,2.5) -- (12.5,5);
+		\draw[thick,dashed,red] (0,-5) -- (0,-2.5) -- (6,-2.5) -- (6,-5);
+		\draw[thick,dashed,red] (6.5,-5) -- (6.5,-2.5) -- (12.5,-2.5) -- (12.5,-5);
+		
+		%         % blue blocks
+		\draw[thin,dashed,blue] (0,-2) rectangle ++ (10,4);
+		
+		
+		%         % left & right chip border
+		\draw[black] (-0.3,-5) -- (-0.3,5);
+		\draw[black] (12.8,-5) -- (12.8,5);
+		
+		
+		
+		%         % blockages in T shaped gaps
+		
+	
+		
+		
+		
+		{	
+			\draw[customviolet,fill, opacity=0.3] (-0.3,1.9) rectangle (12.8,2.6);
+			\draw[customviolet,fill, opacity=0.3] (-0.3,-1.9) rectangle (12.8,-2.6);
+		}
+		
+	{	
+		
+		
+			\draw[mustardyellow,fill, opacity=0.5] (12.4,2.4) rectangle (12.8,5);
+		
+			
+		
+			\draw[mustardyellow,fill, opacity=0.5] (5.9,2.4) rectangle (6.6,5);
+		
+		
+			\draw[gray,fill] (12.4,2.6) rectangle (12.8,2.4);
+			\draw[gray,fill] (4.9,-1.9) rectangle (5.6,-2.1);
+			\draw[gray,fill] (9.9,-1.9) rectangle (10.6,-2.1);
+			\draw[gray,fill] (12.4,-1.9) rectangle (12.8,-2.1);
+			\draw[gray,fill] (12.4,-2.4) rectangle (12.8,-2.6);
+			\draw[gray,fill] (5.9,2.4) rectangle (6.6,2.6);
+			\draw[gray,fill] (5.9,-2.4) rectangle (6.6,-2.6);
+			
+			
+		}
+
+	
+		%%%%%TODO copy to reuse conts
+		
+		
+		%%%%%%%%%%%% T-junction thingies
+	
+	\end{tikzpicture}
+\raggedright
+{\footnotesize \begin{spacing}{0.9}
+	 Blockage structure on T-junction of corridors. Blockages on layers with horizontal/vertical prefered direction are purple/yellow, completely blocked areas are gray.\end{spacing}	}
+
+\end{minipage}
+  % insert picture here
   
   In addition, we modify the tile structure of global routing to have a guaranteed
   tile border on every block border and where the border blockages end. This way the router
   cannot introduce vias in the tiles adjacent bock borders and  track assignment can assign the short segments crossing the block border.
-  The global router has to  suppin non-uniform tiles.
+  The global router has to  support non-uniform tiles.
   
-  If two blocks are neighboring, we ensure that the border blockages are filling the  gap between them.
+ 
   Also track assignment assigns segments passing through both borders.
   
   
@@ -644,10 +733,12 @@
  			}		
  			
  		\end{tikzpicture} 
- 
- Left: global routing solution respecting border and fill gap obstacles, allowing only horizontal routing
+ {\footnotesize \begin{spacing}{0.9}
+ 		Left: global routing solution respecting border and fill gap obstacles, allowing only horizontal routing
  		Right: pins are added according to wireshapes after track assignment (run only in corridor region)
  		The dashed blue lines are the block borders, in yellow are the border blockages that block vertical layers.
+ 	\end{spacing}	}
+ 
  	
 	\blockbreak
 	\blocktitle{Hierarchical Topologies}
@@ -691,13 +782,13 @@
 \blocktitle{Multiply Instantiated Reuse Blocks}
 \begin{minipage}{0.6\blockwidth}
 Equivalent reuse blocks can be mirrored on the x- and y- axis with respect to each other (indicated by {\sffamily F}).
-We assume that we are given an equivalence relation on the terminals in different blocks $B_i$ ($i\in [k]$).
-If two terminals  in block $B_i$ are part of a inter-block net $N$, their equivalent mates in another block must be connected
+We assume that we are given an equivalence relation on the terminals in different blocks $B_i$ ($i\in [k]$), with equivalent terminals being at equivalent positions relative to their blocks.
+
+If two terminals  in block $B_i$ are part of a inter-block net $N$, their equivalent terminals in another block must be connected
 to a common net or must both be floating (unconnected). In the following we call a terminal \textit{floating}, if it is not connected to a net
 but equivalent to a terminal in a inter-block net. 
 %
-The goal of this section is to describe how we achieve pin positions at the same relative border positions and equivalent pin graphs
-on the  reuse blocks $B_1,...,B_k$.
+We need to achieve pin positions at the same relative border positions and equivalent pin graphs on the  reuse blocks $B_1,...,B_k$, to be able to stamp the routing from the leader to the followers and save the routing passes on the followers.
 
 We compute pin positions (or more precisely pin graph parts) on one arbitrarily chosen reuse block $B_1$ that we call the \textit{leader}.
 Then, we  force these positions on the other reuse blocks $B_1\dots, B_k$, called the \textit{followers}. 
@@ -728,10 +819,10 @@ For that to work correctly, we need to consider two things:
 
 \begin{enumerate}
 %TODO make this shorter
-\item \begin{minipage}{0.5\blockwidth}
+\item[\raisebox{0.8cm}{1.}] \begin{minipage}{0.5\blockwidth}
 	
-Firstly, pin positions that are good  for the leader might  cause huge detours or, due to obstacles around the block borders, even be infeasible for the followers.
-Section \ref{sec:reuseblockages} addresses how we achieve feasibility and in Section \ref{sec:pinintervals} we cover how to avoid unnecessarily large detours.
+Pin positions that are good  for the leader might cause huge detours or, due to obstacles around the block borders, even be infeasible for the followers.
+Pin intervals and extra reuse blockages solve that problem.
 \end{minipage}
 \hfill
 \begin{minipage}{0.4\blockwidth}
@@ -754,19 +845,17 @@ Section \ref{sec:reuseblockages} addresses how we achieve feasibility and in Sec
 	\node[shape=circle, draw=black, fill=black, scale=\sinkscale] (s1) at (0.4,-0.4) {};
 	\node[shape=circle, draw=black, fill=black, scale=\sinkscale] (s11) at (2*\reusewidth+2*\corridorwidth+ \otherwidth-0.4,-0.4) {};
 	\node[color=gray, thick, scale=1.5, xscale=1] at (\reusewidth+2*\corridorwidth +\otherwidth+0.4,-\rowheightl +0.4) {{\sffamily F}};
-	\node[shape=circle, draw=black, fill=black, scale=\sinkscale] (s2) at (\reusewidth+\corridorwidth +0.3,-0.9) {};
-	\node[shape=circle, draw=black, fill=black, scale=\sinkscale] (s3) at (\reusewidth+\corridorwidth +0.7,-1) {};
-	\node[draw=red, fill=red, rectangle,scale=\rootscale] (r2) at (-0.3,-0.9) {};
+
 	{{\sffamily F}};
-	\node[draw=red, fill=red, rectangle,scale=\rootscale] (r3) at (2*\reusewidth+2*\corridorwidth +\otherwidth+0.3,-1) {};
+
 	\node[color=gray, thick, scale=1.5,xscale=-1] at (\reusewidth-0.4,-\rowheightl +0.4) {{\sffamily F}};
 	
 	%blocks
-	\draw[thick,blue] (0,0) rectangle (\reusewidth,0-\rowheightl);
-	\draw[thick] (\reusewidth+\corridorwidth,0) rectangle(\reusewidth+\corridorwidth+\otherwidth,0-\rowheightl);
+	\draw[thick,blue,dashed] (0,0) rectangle (\reusewidth,0-\rowheightl);
+	\draw[thick,gray] (\reusewidth+\corridorwidth,0) rectangle(\reusewidth+\corridorwidth+\otherwidth,0-\rowheightl);
 	\draw[thick,blue] (2*\reusewidth+2*\corridorwidth +\otherwidth,0) rectangle(\reusewidth+2*\corridorwidth+\otherwidth,0-\rowheightl);
-	\draw[thick] (2*\reusewidth+2*\corridorwidth +\otherwidth,\corridorwidth) rectangle(\corridorwidth +\uppersmallwidth,\corridorwidth+\rowheightu);
-	\draw[thick] (\uppersmallwidth,\corridorwidth) rectangle(0,\corridorwidth+\rowheightu);
+	\draw[thick,gray] (2*\reusewidth+2*\corridorwidth +\otherwidth,\corridorwidth) rectangle(\corridorwidth +\uppersmallwidth,\corridorwidth+\rowheightu);
+	\draw[thick,gray] (\uppersmallwidth,\corridorwidth) rectangle(0,\corridorwidth+\rowheightu);
 	
 	%nets
 	%\draw[dashed, gray] (r1)--(s1);
@@ -783,19 +872,16 @@ Section \ref{sec:reuseblockages} addresses how we achieve feasibility and in Sec
 	\fill[purple!30, opacity=0.4] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
 	\fill[yellow, opacity=0.4] (\uppersmallwidth- 0.1, \corridorwidth) rectangle (\corridorwidth +\uppersmallwidth+ 0.1, \corridorwidth+\rowheightu);
 	\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, -0.1);
-	\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, -0.1);
+	%\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, -0.1);
 	
-	%pin intervals
-	\fill[green, opacity=0.5] (2*\reusewidth+2*\corridorwidth+ \otherwidth-0.1, -0.1) rectangle (2*\reusewidth+2*\corridorwidth+ \otherwidth-0.7, 0.1);
-	\fill[green, opacity=0.5] (0.1, -0.1) rectangle (0.7, 0.1);
 	
 
 	
 	%Routing pass 1 no pis
 	\node[] (r1) at (0.1,0.7) {};
-	\draw [orange] (r1)--(0.4, 0.7) --(s1);
-	\draw [orange] (r1) -- (3.55, 0.7) -- (3.55, -0.4)--(s11);
-	\draw [orange, dashed] (1.85,0.7) -- (1.85, -0.4) --(s1);
+	\draw [thick] (r1)--(0.4, 0.7) --(s1);
+	\draw [thick] (r1) -- (3.55, 0.7) -- (3.55, -0.4)--(s11);
+	\draw [thick, dashed] (1.85,0.7) -- (1.85, -0.4) --(s1);
 	
 	
 
@@ -811,7 +897,7 @@ Section \ref{sec:reuseblockages} addresses how we achieve feasibility and in Sec
 %When the pins of a net $N_i$ inside $B_i$ are at the same relative positions as the pins of a net $N_j$ inside $B_j$, the respective pin graph parts have to be the same and we say that $(N_j,B_j)\sim (N_j,B_j)$ inducing an an equivalence relation on net-block combinations.
 %When the pin positions of the \textit{leader} are forced onto the followers an ideal pin position for the net $N_1$ in the leader $B_1$ could cause huge detours for one of the corresponding net-block combinations $(N_j,B_j)\in [(N_1,B_1)]$ in the followers (see \ref{figure}). Even worse, the pin position on the leader could even be infeasible for the follower. Our way to avoid such situations that are pin intervals (\ref{PIsection}) and additional reuse way to copy blockages \ref{reuseblockagessection}. %Maybe refer to figure
 
-\item Secondly, we need to reflect that  floating terminals  must be connected to pins and create pins  for \textit{feedthroughs}, i.e.\
+\item [{2.}] Floating terminals  must be connected to pins and create pins  for \textit{feedthroughs}, i.e.\
 nets that are routed through reuse blocks, without connecting to anything inside them. 
 Floating terminals and feedthroughs might be different in each reuse block, but finally, they must be implemented by all reuse blocks. To this end, virtual nets representing such feedthroughs
 or connections to floating terminals are added to the leader, and then those followers where they are not represented already.
@@ -845,10 +931,8 @@ We use 3 global routing passes, each with a different purpose, and some preproce
 	\begin{minipage}{0.5\blockwidth}
 	
 
-		  Steps~\ref{step:add-blockages} and \ref{PIstep} ensure that reuse blocks have the same set of feasible positions and use pin intervals imposing  similar positions in routing (see Figures~\ref{fig:3pass1}).
-		  Using pin positions of the first routing pass, we  align feedthroughs and connectiong to floating terminals across reuse blocks in Step~\ref{step:create-artificial-feedthroughs}.
-		  The simple copying of pin positions of  articficial  nets on the borders  may leave overlaps.
-		  Thus, pin positions are relaxed to intervals. 	\end{minipage}    &\begin{minipage}{0.49\blockwidth}
+		  Steps~\ref{step:add-blockages} and \ref{PIstep} ensure that reuse blocks have the same set of feasible positions and use pin intervals imposing  similar and good  positions the first routing pass, which is needed to determine the feedthroughs through reuse blocks
+		   	\end{minipage}    &\begin{minipage}{0.49\blockwidth}
 		  \centering\begin{tikzpicture}
 	% Parameters
 	\def\nrows{4}
@@ -913,12 +997,6 @@ We use 3 global routing passes, each with a different purpose, and some preproce
 	\draw (r1)--(\xppi, -0.4) --(s1);
 	\draw (r1) -- (\xppii, 0.7) -- (\xppii, -0.4)--(s11);
 	
-	%Routing pass 1 no pis
-	\node[] (r11) at (0.1,0.68) {};
-	\draw [orange] (r11)--(0.4, 0.68) --(s1);
-	\draw [orange] (r11) -- (3.55, 0.68) -- (3.55, -0.4)--(s11);
-	\draw [orange, dashed] (1.85,0.68) -- (1.85, -0.4) --(s1);
-	
 	
 	%Pins routing pass 1
 	\foreach \x in {\xppi,\xppii} {            	
@@ -954,9 +1032,9 @@ We use 3 global routing passes, each with a different purpose, and some preproce
 \end{tikzpicture}\end{minipage}\\
 \multicolumn{2}{c}{} \\
 \begin{minipage}{0.5\blockwidth}
-The next routing call with track assignment legalizes  the pin positions the position from the first pass.
-Now, we enforce the legal pin positions from the leader on the followers in Step~\ref{step:copy-pin-assignment}.
-Step~\ref{step:add-blockages} guarantees that  they are legal for the followers.
+In step \ref{step:create-artificial-feedthroughs} we create for each feedthrough through a reuse block an artificial net with artificial pins on the boundary of each equivalent block. The positions of the artificial pins in the leader will determine the positions of the pins of this feedthrough in the follower.
+This may leave overlapping pins. Thus, we relax pin positions to intervals (step \ref{step:relaxpositions}) to give the router enough freedom to legalize the pin positions. 
+
 \end{minipage}&\begin{minipage}{0.49\blockwidth}
 \centering
 
@@ -972,6 +1050,14 @@ Step~\ref{step:add-blockages} guarantees that  they are legal for the followers.
 	\def\uppersmallwidth{1.5}
 	\def\sinkscale{0.3}
 	\def\rootscale{0.4}
+		\def\xppi{0.4}
+	\def\xppii{2*\reusewidth+2*\corridorwidth +\otherwidth-0.4}
+	\def\yppi{-0.9}
+	\def\yppii{-1}
+	\def\ps{0.075}
+	
+	\draw[dashed,gray] (\xppi,0) --(0.4,-0.4);
+	\draw[dashed,gray] (\xppii,0) --(2*\reusewidth+2*\corridorwidth+ \otherwidth-0.4,-0.4);
 	
 	%pins
 	\node[draw=red, fill=red, rectangle,scale=\rootscale] (r1) at (0.2,0.7) {};
@@ -1036,13 +1122,9 @@ Step~\ref{step:add-blockages} guarantees that  they are legal for the followers.
 	%		\fill[green, opacity=0.4] (\reusewidth+0.1, -0.6) rectangle (\reusewidth-0.1, -1.2);
 	
 	%Routing pass 1
-	\def\xppi{0.4}
-	\def\xppii{2*\reusewidth+2*\corridorwidth +\otherwidth-0.4}
-	\def\yppi{-0.9}
-	\def\yppii{-1}
-	\def\ps{0.075}
+
 	
-	
+	\draw [dashed,gray] (\reusewidth+2*\corridorwidth+\otherwidth,\yppii)--(2*\reusewidth+2*\corridorwidth+\otherwidth,\yppii);
 	
 	%pins routing pass 1
 	\foreach \x in {\xppi,\xppii} {            	
@@ -1062,6 +1144,7 @@ Step~\ref{step:add-blockages} guarantees that  they are legal for the followers.
 	
 	%Copy in leader of subways
 	\draw [dashed,gray] (\reusewidth+2*\corridorwidth+\otherwidth,\yppi)--(2*\reusewidth+2*\corridorwidth+\otherwidth,\yppi);
+	\draw [dashed,gray] (0,\yppi)--(\reusewidth,\yppi);
 	\foreach \x in {\reusewidth+2*\corridorwidth+\otherwidth+\ps,2*\reusewidth+2*\corridorwidth+\otherwidth-\ps} {            	
 		\begin{scope}[shift={(\x, \yppi)}, scale=0.5,rotate=180]		      				
 			\filldraw[fill=white, draw=black] (-0.15, -0.1) rectangle (0.15, 0.1);
@@ -1085,7 +1168,8 @@ Step~\ref{step:add-blockages} guarantees that  they are legal for the followers.
 			\end{scope}		             	
 		}            		
 		
-		\draw [dashed,gray] (\reusewidth+2*\corridorwidth+\otherwidth,\yppii)--(2*\reusewidth+2*\corridorwidth+\otherwidth,\yppii);	
+		\draw [dashed,gray] (\reusewidth+2*\corridorwidth+\otherwidth,\yppii)--(2*\reusewidth+2*\corridorwidth+\otherwidth,\yppii);
+			
 		\foreach \x in {\reusewidth+2*\corridorwidth+\otherwidth+\ps,2*\reusewidth+2*\corridorwidth+\otherwidth-\ps} {            	
 			\begin{scope}[shift={(\x, \yppii)}, scale=0.5,rotate=180]		      				
 				\filldraw[fill=white, draw=black] (-0.15, -0.1) rectangle (0.15, 0.1);
@@ -1104,16 +1188,11 @@ Step~\ref{step:add-blockages} guarantees that  they are legal for the followers.
 \end{tikzpicture}\end{minipage}\\
 \multicolumn{2}{c}{} \\
 \begin{minipage}{0.5\blockwidth}
-Finally, the third routing pass is  adapts pin assignment on non-reuse blocks to the new forced pin positions on the followers.
-The running time  is dominated by the three routing passes. 
+
+The second routing pass with track assignment (only necessary at the borders of the leader) legalizes  the pin positions the position from the first pass without moving them too much.
 
 
-Note that with above flow we get dead feedthroughs, i.e. extra virtual
-nets not needed for signal transmission.
-%
-To reduce the number of dead feedthroughs, it is possible to match
-feedthroughs of different blocks, but this is beyond the scope of this
-paper.
+
 \end{minipage}&\begin{minipage}{0.49\blockwidth}
 \centering\begin{tikzpicture}
 	% Parameters
@@ -1226,7 +1305,256 @@ paper.
 	
 	
 \end{tikzpicture}\end{minipage}\\
+\multicolumn{2}{c}{} \\
+\begin{minipage}{0.5\blockwidth}
+	Now, we enforce the legal pin positions from the leader on the followers in Step~\ref{step:copy-pin-assignment}.
+	Step~\ref{step:add-blockages} guaranteed that  they are legal for the followers.
+	
 
+\end{minipage}&\begin{minipage}{0.49\blockwidth}
+	\centering\begin{tikzpicture}
+		% Parameters
+		\def\nrows{4}
+		\def\ncols{3}
+		\def\rowheightu{0.7}
+		\def\rowheightl{1.2}
+		\def\corridorwidth{0.2}
+		\def\reusewidth{2.0}
+		\def\otherwidth{1.0}
+		\def\uppersmallwidth{1.5}
+		\def\sinkscale{0.3}
+		\def\rootscale{0.4}
+		\def\xppi{0.6}
+		\def\xppii{2*\reusewidth+2*\corridorwidth +\otherwidth-0.4-0.2}
+		\def\yppi{-0.8}
+		\def\yppii{-1.1}
+		\def\ps{0.075}
+		
+		\draw[dashed,gray] (\xppi,0) --(0.4,-0.4);
+		\draw[dashed,gray] (\xppii,0) --(2*\reusewidth+2*\corridorwidth+ \otherwidth-0.4,-0.4);
+		
+		%pins
+		\node[draw=red, fill=red, rectangle,scale=\rootscale] (r1) at (0.2,0.7) {};
+		\node[shape=circle, draw=black, fill=black, scale=\sinkscale] (s1) at (0.4,-0.4) {};
+		\node[shape=circle, draw=black, fill=black, scale=\sinkscale] (s11) at (2*\reusewidth+2*\corridorwidth+ \otherwidth-0.4,-0.4) {};
+		\node[color=gray, thick, scale=1.5, xscale=1] at (\reusewidth+2*\corridorwidth +\otherwidth+0.4,-\rowheightl +0.4) {{\sffamily F}};
+		\node[shape=circle, draw=black, fill=black, scale=\sinkscale] (s2) at (\reusewidth+\corridorwidth +0.3,-0.9) {};
+		\node[shape=circle, draw=black, fill=black, scale=\sinkscale] (s3) at (\reusewidth+\corridorwidth +0.7,-1) {};
+		\node[draw=red, fill=red, rectangle,scale=\rootscale] (r2) at (-0.3,-0.9) {};
+		{{\sffamily F}};
+		\node[draw=red, fill=red, rectangle,scale=\rootscale] (r3) at (2*\reusewidth+2*\corridorwidth +\otherwidth+0.3,-1) {};
+		\node[color=gray, thick, scale=1.5,xscale=-1] at (\reusewidth-0.4,-\rowheightl +0.4) {{\sffamily F}};
+		
+		%blocks
+		\draw[thick,blue] (0,0) rectangle (\reusewidth,0-\rowheightl);
+		\draw[thick] (\reusewidth+\corridorwidth,0) rectangle(\reusewidth+\corridorwidth+\otherwidth,0-\rowheightl);
+		\draw[thick,blue] (2*\reusewidth+2*\corridorwidth +\otherwidth,0) rectangle(\reusewidth+2*\corridorwidth+\otherwidth,0-\rowheightl);
+		\draw[thick] (2*\reusewidth+2*\corridorwidth +\otherwidth,\corridorwidth) rectangle(\corridorwidth +\uppersmallwidth,\corridorwidth+\rowheightu);
+		\draw[thick] (\uppersmallwidth,\corridorwidth) rectangle(0,\corridorwidth+\rowheightu);
+		
+		%nets
+		%\draw[dashed, gray] (r1)--(s1);
+		%\draw[dashed, gray] (r1)--(s11);
+		%\draw[dashed, gray] (r2)--(s2);
+		%\draw[dashed, gray] (r3)--(s3);
+		
+		%blockages
+		\fill[yellow, opacity=0.4]
+		(\reusewidth - 0.1, 0-\rowheightl) rectangle (\reusewidth + 0.1 + \corridorwidth, 0);
+		\fill[yellow, opacity=0.4] (\reusewidth + \corridorwidth +\otherwidth- 0.1, 0-\rowheightl) rectangle (\reusewidth +\otherwidth+ 0.1 + 2*\corridorwidth, 0);
+		\fill[yellow!30, opacity=0.4]
+		(\reusewidth - 0.1, 0-\rowheightl) rectangle (\reusewidth + 0.1 + \corridorwidth, 0);
+		\fill[purple!30, opacity=0.4] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
+		\fill[yellow, opacity=0.4] (\uppersmallwidth- 0.1, \corridorwidth) rectangle (\corridorwidth +\uppersmallwidth+ 0.1, \corridorwidth+\rowheightu);
+		\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, -0.1);
+		\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, -0.1);
+		
+		%Routing pass 3
+	
+		\draw [dashed, gray](0,-0.8) -- (\reusewidth,-0.8);
+		\draw [dashed, gray](2*\reusewidth+2*\corridorwidth +\otherwidth+0.3,-1.1) --(\reusewidth+\corridorwidth +0.7,-1.1);
+		
+		
+		%Pins routing pass 1
+		\foreach \x in {\xppi,\xppii} {            	
+			\begin{scope}[shift={(\x, -\ps)},rotate=-90, scale=0.5]		
+				\filldraw[fill=black] (-0.15, 0) -- (-0.25, 0.1) -- (-0.25, -0.1) -- cycle;
+				\filldraw[fill=white, draw=black] (-0.15, -0.1) rectangle (0.15, 0.1);
+			\end{scope}		
+			               	
+		}
+	
+		
+		\foreach \x in {0+\ps,\reusewidth-\ps} {            	
+			\begin{scope}[shift={(\x, \yppi)}, scale=0.5]		
+				\filldraw[fill=black] (-0.15, 0) -- (-0.25, 0.1) -- (-0.25, -0.1) -- cycle;
+				\filldraw[fill=white, draw=black] (-0.15, -0.1) rectangle (0.15, 0.1);
+			\end{scope}		             	
+		}
+		\foreach \x in {\reusewidth+2*\corridorwidth+\otherwidth+\ps,2*\reusewidth+2*\corridorwidth+\otherwidth-\ps} {            	
+			\begin{scope}[shift={(\x, \yppii)}, scale=0.5,rotate=180]		
+				\filldraw[fill=black] (-0.15, 0) -- (-0.25, 0.1) -- (-0.25, -0.1) -- cycle;
+				\filldraw[fill=white, draw=black] (-0.15, -0.1) rectangle (0.15, 0.1);
+			\end{scope}		             	
+		}
+		
+		\def\yppiii{-0.8}
+		\draw [dashed, gray] (\reusewidth+2*\corridorwidth+\otherwidth,\yppiii)--(2*\reusewidth+2*\corridorwidth+\otherwidth,\yppiii);
+		\foreach \x in {\reusewidth+2*\corridorwidth+\otherwidth+\ps,2*\reusewidth+2*\corridorwidth+\otherwidth-\ps} {            	
+			\begin{scope}[shift={(\x, \yppiii)}, scale=0.5,rotate=180]		      				
+				\filldraw[fill=white, draw=black] (-0.15, -0.1) rectangle (0.15, 0.1);
+				\filldraw[fill=black] (-0.15, 0) -- (-0.25, 0.1) -- (-0.25, -0.1) -- cycle;
+			\end{scope}		             	
+		}   
+		
+		\draw [dashed, gray] (0,\yppii)--(\reusewidth,\yppii);	
+		\foreach \x in {0+\ps,\reusewidth-\ps} {            	
+			\begin{scope}[shift={(\x, \yppii)}, scale=0.5]		      				
+				\filldraw[fill=white, draw=black] (-0.15, -0.1) rectangle (0.15, 0.1);
+				\filldraw[fill=black] (-0.15, 0) -- (-0.25, 0.1) -- (-0.25, -0.1) -- cycle;
+			\end{scope}		             	
+		}           		
+		
+		
+		
+		
+		
+		
+		
+\end{tikzpicture}\end{minipage}\\
+\multicolumn{2}{c}{} \\
+\begin{minipage}{0.5\blockwidth}
+	The third routing pass adapts the pin assignment on non-reuse blocks to the pin positions on reuse blocks. Track assignment is necessary on all border regions of non-reuse blocks.The ports cut from this routing are returned.
+\end{minipage}&\begin{minipage}{0.49\blockwidth}
+	\centering\begin{tikzpicture}
+		% Parameters
+		\def\nrows{4}
+		\def\ncols{3}
+		\def\rowheightu{0.7}
+		\def\rowheightl{1.2}
+		\def\corridorwidth{0.2}
+		\def\reusewidth{2.0}
+		\def\otherwidth{1.0}
+		\def\uppersmallwidth{1.5}
+		\def\sinkscale{0.3}
+		\def\rootscale{0.4}
+		\def\xppi{0.6}
+		\def\xppii{2*\reusewidth+2*\corridorwidth +\otherwidth-0.4-0.2}
+		\def\yppi{-0.8}
+		\def\yppii{-1.1}
+		\def\ps{0.075}
+		
+		
+			%blocks
+		\draw[thick,blue] (0,0) rectangle (\reusewidth,0-\rowheightl);
+		\draw[thick] (\reusewidth+\corridorwidth,0) rectangle(\reusewidth+\corridorwidth+\otherwidth,0-\rowheightl);
+		\draw[thick,blue] (2*\reusewidth+2*\corridorwidth +\otherwidth,0) rectangle(\reusewidth+2*\corridorwidth+\otherwidth,0-\rowheightl);
+		\draw[thick] (2*\reusewidth+2*\corridorwidth +\otherwidth,\corridorwidth) rectangle(\corridorwidth +\uppersmallwidth,\corridorwidth+\rowheightu);
+		\draw[thick] (\uppersmallwidth,\corridorwidth) rectangle(0,\corridorwidth+\rowheightu);
+		
+		%blockages
+		\fill[yellow, opacity=0.4]
+		(\reusewidth - 0.1, 0-\rowheightl) rectangle (\reusewidth + 0.1 + \corridorwidth, 0);
+		\fill[yellow, opacity=0.4] (\reusewidth + \corridorwidth +\otherwidth- 0.1, 0-\rowheightl) rectangle (\reusewidth +\otherwidth+ 0.1 + 2*\corridorwidth, 0);
+		\fill[yellow!30, opacity=0.4]
+		(\reusewidth - 0.1, 0-\rowheightl) rectangle (\reusewidth + 0.1 + \corridorwidth, 0);
+		\fill[purple!30, opacity=0.4] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
+		\fill[yellow, opacity=0.4] (\uppersmallwidth- 0.1, \corridorwidth) rectangle (\corridorwidth +\uppersmallwidth+ 0.1, \corridorwidth+\rowheightu);
+		\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, -0.1);
+		\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, -0.1);
+		
+	
+		
+		\draw (r3)-- (2*\reusewidth+2*\corridorwidth +\otherwidth+0.3,-1.1) --(\reusewidth+\corridorwidth +0.7,-1.1)--(s3);
+		\draw (r2)-- (-0.3,-0.8) --(\reusewidth+\corridorwidth +0.3,-0.8)--(s2);
+		
+		
+		%pins
+		\node[draw=red, fill=red, rectangle,scale=\rootscale] (r1) at (0.2,0.7) {};
+		\node[shape=circle, draw=black, fill=black, scale=\sinkscale] (s1) at (0.4,-0.4) {};
+		\node[shape=circle, draw=black, fill=black, scale=\sinkscale] (s11) at (2*\reusewidth+2*\corridorwidth+ \otherwidth-0.4,-0.4) {};
+		\node[color=gray, thick, scale=1.5, xscale=1] at (\reusewidth+2*\corridorwidth +\otherwidth+0.4,-\rowheightl +0.4) {{\sffamily F}};
+		\node[shape=circle, draw=black, fill=black, scale=\sinkscale] (s2) at (\reusewidth+\corridorwidth +0.3,-0.9) {};
+		\node[shape=circle, draw=black, fill=black, scale=\sinkscale] (s3) at (\reusewidth+\corridorwidth +0.7,-1) {};
+		\node[draw=red, fill=red, rectangle,scale=\rootscale] (r2) at (-0.3,-0.9) {};
+		{{\sffamily F}};
+		\node[draw=red, fill=red, rectangle,scale=\rootscale] (r3) at (2*\reusewidth+2*\corridorwidth +\otherwidth+0.3,-1) {};
+		\node[color=gray, thick, scale=1.5,xscale=-1] at (\reusewidth-0.4,-\rowheightl +0.4) {{\sffamily F}};
+		
+	
+		%nets
+		%\draw[dashed, gray] (r1)--(s1);
+		%\draw[dashed, gray] (r1)--(s11);
+		%\draw[dashed, gray] (r2)--(s2);
+		%\draw[dashed, gray] (r3)--(s3);
+		
+	
+		%Routing pass 3
+		
+		
+		
+		%Routing pass 1
+		
+		
+		%\draw (r2)--(s2);
+		%\draw (r3)--(s3);
+		\draw (r1)--(\xppi, 0.7) --(\xppi, -0.4)--(s1);
+		\draw (r1) -- (\xppii, 0.7) -- (\xppii, -0.4)--(s11);
+		
+		
+	
+		\def\yppiii{-0.8}
+		\draw [] (\reusewidth+2*\corridorwidth+\otherwidth,\yppiii)--(2*\reusewidth+2*\corridorwidth+\otherwidth,\yppiii);
+		\draw [] (0,\yppii)--(\reusewidth,\yppii);
+		
+		\draw [] (\reusewidth+2*\corridorwidth+\otherwidth,\yppii)--(2*\reusewidth+2*\corridorwidth+\otherwidth,\yppii);
+		\draw [] (0,\yppiii)--(\reusewidth,\yppiii);
+		\foreach \x in {\reusewidth+2*\corridorwidth+\otherwidth+\ps,2*\reusewidth+2*\corridorwidth+\otherwidth-\ps} {            	
+			\begin{scope}[shift={(\x, \yppiii)}, scale=0.5,rotate=180]		      				
+				\filldraw[fill=white, draw=black] (-0.15, -0.1) rectangle (0.15, 0.1);
+				\filldraw[fill=black] (-0.15, 0) -- (-0.25, 0.1) -- (-0.25, -0.1) -- cycle;
+			\end{scope}		             	
+		}   
+		
+			
+		\foreach \x in {0+\ps,\reusewidth-\ps} {            	
+			\begin{scope}[shift={(\x, \yppii)}, scale=0.5]		      				
+				\filldraw[fill=white, draw=black] (-0.15, -0.1) rectangle (0.15, 0.1);
+				\filldraw[fill=black] (-0.15, 0) -- (-0.25, 0.1) -- (-0.25, -0.1) -- cycle;
+			\end{scope}		             	
+		}  
+	
+		%Pins routing pass 1
+	\foreach \x in {\xppi,\xppii} {            	
+		\begin{scope}[shift={(\x, -\ps)},rotate=-90, scale=0.5]		
+			\filldraw[fill=black] (-0.15, 0) -- (-0.25, 0.1) -- (-0.25, -0.1) -- cycle;
+			\filldraw[fill=white, draw=black] (-0.15, -0.1) rectangle (0.15, 0.1);
+		\end{scope}		
+		
+	}
+	
+	
+	\foreach \x in {0+\ps,\reusewidth-\ps} {            	
+		\begin{scope}[shift={(\x, \yppi)}, scale=0.5]		
+			\filldraw[fill=black] (-0.15, 0) -- (-0.25, 0.1) -- (-0.25, -0.1) -- cycle;
+			\filldraw[fill=white, draw=black] (-0.15, -0.1) rectangle (0.15, 0.1);
+		\end{scope}		             	
+	}
+	\foreach \x in {\reusewidth+2*\corridorwidth+\otherwidth+\ps,2*\reusewidth+2*\corridorwidth+\otherwidth-\ps} {            	
+		\begin{scope}[shift={(\x, \yppii)}, scale=0.5,rotate=180]		
+			\filldraw[fill=black] (-0.15, 0) -- (-0.25, 0.1) -- (-0.25, -0.1) -- cycle;
+			\filldraw[fill=white, draw=black] (-0.15, -0.1) rectangle (0.15, 0.1);
+		\end{scope}		             	
+	}
+	         		
+		
+		
+		
+		
+		
+		
+		
+\end{tikzpicture}\end{minipage}\\
 \end{tabular}
 
 
@@ -1234,21 +1562,18 @@ paper.
 
 
 
-\subsection{Reuse Blockages}\label{sec:reuseblockages}
-As  pin positions are  copied between reuse blocks, pin positions that are infeasible on one block should also be infeasible for others.
+\textbf{Reuse Blockages:}\label{sec:reuseblockages}
 We align the blockage structure around equivalent blocks, by transferring blockages in the corridors around each reuse block to its equivalent counterparts.
-In Figure~\ref{fig:3pass1}, the yellow border blockages in the northern vertical gap and the pink border blockages in the middle gap overlap in a T-junction,
+The yellow border blockages in the northern vertical gap and the pink border blockages in the middle gap overlap in a T-junction,
 where no routing is allowed.
-We need to copy an equivalent blockage to the right (blue) reuse continent to prevent pins in that area.
+We need to copy an equivalent blockage to the right (blue) reuse block to prevent pins in that area.
 
 
 \blocktitle{Pin Intervals}\label{sec:pinintervals}
 %TODO fix notation, less introduction
+%TODO Add picture from reduction
 
-Simply forcing the pin assignment from the leader to a follower could lead to an unnecessary detour on the follower block (see orange net in Figure \ref{fig:3pass1}). 
-Also the routing on the follower and its neighbors could change significantly, after the pins assignment is imposed.
-
-We ensure to find pin positions that are good for every equivalent block and visible in the first routing pass as follows.
+We ensure to find pin positions that are good for every equivalent block and visible in the first routing pass as follows:
 We predefine pin intervals at the block borders, that the router is forced to route through.
 We first choose an interval (often just a point) on the boundary such that the worst detour w.r.t. the  $\ell_1$-metric among all equivalent blocks in an individual net routing is minimized.
 This interval is then increased  by a constant value to give the router flexibility in avoiding congestion.
@@ -1316,11 +1641,9 @@ The external sinks/sources are connected through one of the pins/facilities.
 
 	
 
-\blocktitle{Multiple equivalence classes of reuse blocks}
-\label{sec:multiple-equivalent classes}
-
+\blocktitle{Multiple equivalence classes of reuse blocks}\label{sec:multiple-equivalent classes}
 So far we considered  a single equivalence class of reuse blocks.
-In case of multiple equivalence classed things become more complicated.
+In case of multiple equivalence classes things become more complicated.
 If two reuse blocks from different equivalence classes are neighboring
 and both are treated as followers, our approach might simply create illegal
 results.
@@ -1333,21 +1656,12 @@ Now, all inter-block nets connect terminals in two adjacent blocks.
 
 We can modify Algorithm \ref{alg:reuse-alg} to legalize the equivalence
 classes one-by-one, running the second and the third routing pass for
-each class.
+each class. Additionally 
 
 This process can be improved, by processing sets of mutually
 independent equivalent classes, where no two blocks are neighboring,
 simultaneously.
 	
-    \begin{minipage}[t]{0.3\blockwidth}
-      Can put side-by-side \texttt{minipage}, but it needs to be sized according to the block width. The \texttt{caption} package is locked and loaded.
-    \end{minipage}
-    \begin{minipage}[t]{0.7\blockwidth}
-      \begin{blockfigure}
-        \emptybox{0.9\textwidth}{4em}
-        \blockcaption[0.9\textwidth]{Supports also figures and captions. Caption width is an optional parameter.}
-      \end{blockfigure}
-    \end{minipage}
   \end{blockrow}
 
 %\begin{blockrow}[3]
@@ -1371,5 +1685,5 @@ simultaneously.
 %	\bibliography{samplebib}
 %	\blockfoot
 %\end{blockrow}
-  
+	\bibliography{samplebib.bib}  
 \end{document}

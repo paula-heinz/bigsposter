@@ -443,6 +443,29 @@ assignment \cite{BatterywalaTrackAssign,duran:2024} is used  to legalize wires c
 Pin positions and shapes are simply cut from the legalized wires.
 Preliminaries of this section can be found in \cite{kazda+pangea:21}. 
 
+\textbf{Problem Definition}
+A pin graph for a net rooted at $r$ is an $r$-arborescence whose
+leaves are the terminal sinks, whose inner vertices are located on block
+borders or represent segments of block borders. Its edges connect pins 
+within a block or a gap.
+It determines how the net is distributed to the blocks.
+
+A pin assignment of a net and pin graph specifies for each inner vertex of the pin graph
+a 3D position  and a shape (length, width, and spacing).
+%
+The overall task is to find pin graphs and pins assignments for all
+inter-block nets that preserve routability and achievability of
+timing constraints.  They should not introduce  much wire length
+overhead.  As a hard constraint the pin positions must enable a DRC \&
+LVS clean routing.
+
+As soft constraints/objectives we aim for a minimum number of
+pins, entering a block at most once to serve sinks in that block, and avoiding
+re-entrance of the same block on a source-sink path in the pin graph.
+While our algorithms will obey hard constraints, we guarantee most of
+the soft constraints only in case of rectangular blocks.
+
+
 \begin{comment}
 	
 
@@ -781,17 +804,17 @@ Preliminaries of this section can be found in \cite{kazda+pangea:21}.
  	
 \blocktitle{Multiply Instantiated Reuse Blocks}
 \begin{minipage}{0.6\blockwidth}
-Equivalent reuse blocks can be mirrored on the x- and y- axis with respect to each other (indicated by {\sffamily F}).
+Equivalent reuse blocks (blue) can be mirrored on the x- and y- axis with respect to each other (indicated by {\sffamily F}).
 We assume that we are given an equivalence relation on the terminals in different blocks $B_i$ ($i\in [k]$), with equivalent terminals being at equivalent positions relative to their blocks.
 
 If two terminals  in block $B_i$ are part of a inter-block net $N$, their equivalent terminals in another block must be connected
 to a common net or must both be floating (unconnected). In the following we call a terminal \textit{floating}, if it is not connected to a net
 but equivalent to a terminal in a inter-block net. 
 %
-We need to achieve pin positions at the same relative border positions and equivalent pin graphs on the  reuse blocks $B_1,...,B_k$, to be able to stamp the routing from the leader to the followers and save the routing passes on the followers.
+We need to achieve pin positions at the same relative border positions and equivalent pin graphs on the  reuse blocks $B_1,...,B_k$, to be able to use the same routing for all reuse blocks.
 
-We compute pin positions (or more precisely pin graph parts) on one arbitrarily chosen reuse block $B_1$ that we call the \textit{leader}.
-Then, we  force these positions on the other reuse blocks $B_1\dots, B_k$, called the \textit{followers}. 
+We compute pin positions (or more precisely pin graph parts) on one arbitrarily chosen reuse block $B_1$ that we call the \textit{leader} (solid line). 
+Then, we  force these positions on the other reuse blocks $B_1\dots, B_k$, called the \textit{followers} (dashed lines). 
 For that to work correctly, we need to consider two things: 
 
 	
@@ -819,10 +842,10 @@ For that to work correctly, we need to consider two things:
 
 \begin{enumerate}
 %TODO make this shorter
-\item[\raisebox{0.8cm}{1.}] \begin{minipage}{0.5\blockwidth}
+\item[\raisebox{1.3cm}{1.}] \begin{minipage}{0.5\blockwidth}
 	
 Pin positions that are good  for the leader might cause huge detours or, due to obstacles around the block borders, even be infeasible for the followers.
-Pin intervals and extra reuse blockages solve that problem.
+By aligning the blockage structure around the reuse blocks, we ensure feasibility. Pin intervals ensure that pin positions lie, if possible, on a shortest source sink path.
 \end{minipage}
 \hfill
 \begin{minipage}{0.4\blockwidth}
@@ -1557,18 +1580,6 @@ The second routing pass with track assignment (only necessary at the borders of 
 \end{tikzpicture}\end{minipage}\\
 \end{tabular}
 
-
-
-
-
-
-\textbf{Reuse Blockages:}\label{sec:reuseblockages}
-We align the blockage structure around equivalent blocks, by transferring blockages in the corridors around each reuse block to its equivalent counterparts.
-The yellow border blockages in the northern vertical gap and the pink border blockages in the middle gap overlap in a T-junction,
-where no routing is allowed.
-We need to copy an equivalent blockage to the right (blue) reuse block to prevent pins in that area.
-
-
 \blocktitle{Pin Intervals}\label{sec:pinintervals}
 %TODO fix notation, less introduction
 %TODO Add picture from reduction
@@ -1639,29 +1650,7 @@ The external sinks/sources are connected through one of the pins/facilities.
 	%% %TODO read fines diss, define again...
 	%% \end{comment}
 
-	
 
-\blocktitle{Multiple equivalence classes of reuse blocks}\label{sec:multiple-equivalent classes}
-So far we considered  a single equivalence class of reuse blocks.
-In case of multiple equivalence classes things become more complicated.
-If two reuse blocks from different equivalence classes are neighboring
-and both are treated as followers, our approach might simply create illegal
-results.
-We will legalize the classes one after another.
-Still, feedthroughs can lead to unroutable situations.
-
-To eliminate proper feedthroughs, we run the 1st routing pass. Then
-we insert a (temporary) buffer whenever it leaves a block. 
-Now, all inter-block nets connect terminals in two adjacent blocks.
-
-We can modify Algorithm \ref{alg:reuse-alg} to legalize the equivalence
-classes one-by-one, running the second and the third routing pass for
-each class. Additionally 
-
-This process can be improved, by processing sets of mutually
-independent equivalent classes, where no two blocks are neighboring,
-simultaneously.
-	
   \end{blockrow}
 
 %\begin{blockrow}[3]

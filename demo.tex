@@ -871,7 +871,7 @@ Pin intervals and extra reuse blockages solve that problem.
 	(\reusewidth - 0.1, 0-\rowheightl) rectangle (\reusewidth + 0.1 + \corridorwidth, 0);
 	\fill[purple!30, opacity=0.4] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
 	\fill[yellow, opacity=0.4] (\uppersmallwidth- 0.1, \corridorwidth) rectangle (\corridorwidth +\uppersmallwidth+ 0.1, \corridorwidth+\rowheightu);
-	\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, -0.1);
+	\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, \corridorwidth-0.1);
 	%\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, -0.1);
 	
 	
@@ -979,8 +979,8 @@ We use 3 global routing passes, each with a different purpose, and some preproce
 	(\reusewidth - 0.1, 0-\rowheightl) rectangle (\reusewidth + 0.1 + \corridorwidth, 0);
 	\fill[purple!30, opacity=0.4] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
 	\fill[yellow, opacity=0.4] (\uppersmallwidth- 0.1, \corridorwidth) rectangle (\corridorwidth +\uppersmallwidth+ 0.1, \corridorwidth+\rowheightu);
-	\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, -0.1);
-	\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, -0.1);
+	\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, \corridorwidth-0.1);
+	\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, \corridorwidth-0.1);
 	
 	%pin intervals
 	\fill[green, opacity=0.5] (2*\reusewidth+2*\corridorwidth+ \otherwidth-0.1, -0.1) rectangle (2*\reusewidth+2*\corridorwidth+ \otherwidth-0.7, 0.1);
@@ -1092,8 +1092,8 @@ This may leave overlapping pins. Thus, we relax pin positions to intervals (step
 	(\reusewidth - 0.1, 0-\rowheightl) rectangle (\reusewidth + 0.1 + \corridorwidth, 0);
 	\fill[purple!30, opacity=0.4] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
 	\fill[yellow, opacity=0.4] (\uppersmallwidth- 0.1, \corridorwidth) rectangle (\corridorwidth +\uppersmallwidth+ 0.1, \corridorwidth+\rowheightu);
-	\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, -0.1);
-	\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, -0.1);
+	\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, \corridorwidth-0.1);
+	\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, \corridorwidth-0.1);
 	
 	%pin intervals
 	
@@ -1240,8 +1240,8 @@ The second routing pass with track assignment (only necessary at the borders of 
 	(\reusewidth - 0.1, 0-\rowheightl) rectangle (\reusewidth + 0.1 + \corridorwidth, 0);
 	\fill[purple!30, opacity=0.4] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
 	\fill[yellow, opacity=0.4] (\uppersmallwidth- 0.1, \corridorwidth) rectangle (\corridorwidth +\uppersmallwidth+ 0.1, \corridorwidth+\rowheightu);
-	\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, -0.1);
-	\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, -0.1);
+	\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, \corridorwidth-0.1);
+	\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, \corridorwidth-0.1);
 	
 	%Routing pass 3
 	\def\xppi{0.4}
@@ -1366,8 +1366,8 @@ The second routing pass with track assignment (only necessary at the borders of 
 		(\reusewidth - 0.1, 0-\rowheightl) rectangle (\reusewidth + 0.1 + \corridorwidth, 0);
 		\fill[purple!30, opacity=0.4] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
 		\fill[yellow, opacity=0.4] (\uppersmallwidth- 0.1, \corridorwidth) rectangle (\corridorwidth +\uppersmallwidth+ 0.1, \corridorwidth+\rowheightu);
-		\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, -0.1);
-		\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, -0.1);
+		\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, \corridorwidth-0.1);
+		\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, \corridorwidth-0.1);
 		
 		%Routing pass 3
 	
@@ -1460,8 +1460,8 @@ The second routing pass with track assignment (only necessary at the borders of 
 		(\reusewidth - 0.1, 0-\rowheightl) rectangle (\reusewidth + 0.1 + \corridorwidth, 0);
 		\fill[purple!30, opacity=0.4] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
 		\fill[yellow, opacity=0.4] (\uppersmallwidth- 0.1, \corridorwidth) rectangle (\corridorwidth +\uppersmallwidth+ 0.1, \corridorwidth+\rowheightu);
-		\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, -0.1);
-		\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, -0.1);
+		\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, \corridorwidth-0.1);
+		\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, \corridorwidth-0.1);
 		
 	
 		

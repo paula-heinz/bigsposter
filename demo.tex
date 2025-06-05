@@ -450,8 +450,8 @@ borders or represent segments of block borders. Its edges connect pins
 within a block or a gap.
 It determines how the net is distributed to the blocks.
 
-A pin assignment of a net and pin graph specifies for each inner vertex of the pin graph
-a 3D position  and a shape (length, width, and spacing).
+A pin assignment of a net and pin graph specifies for each inner vertex of the pin graph. A partial pin assignment only assigns pin positions to some continents. %TODO
+
 %
 The overall task is to find pin graphs and pins assignments for all
 inter-block nets that preserve routability and achievability of
@@ -764,9 +764,18 @@ the soft constraints only in case of rectangular blocks.
  
  	
 	\blockbreak
-	\blocktitle{Hierarchical Topologies}
+	\textbf{Routing Topologies}
+	Our way to generate routing topologies ensures:
+	\begin{itemize}
+		\item Reuse blocks are entered only once for connecting to the sinks inside (further entries for connections going through them are possible)
+		\item If no port assignment is given, then the length of any source-sink path through the topology
+		should be within a factor $(1+\epsilon)$ of the source-sink distance, (usually $\epsilon=.1$)
+		\item If a (partial) port assignment is given, terminals in continents with assigned pins are connected over the assigned pin positions.
+	\end{itemize}
 	We use a two step Steiner tree oracle for the nets in  global routing.
 	First, we compute a 2D obstacle-avoiding Steiner tree topology  that is then embedded into the 3D global routing graph.
+	
+	
 	For the topology  we aim  for an approximate shortest path topology w.r.t. obstacles. The length of any source-sink path through the topology
 	should be within a factor $(1+\epsilon)$ of the source-sink distance, usually $\epsilon=.1$ 
 	Later the embedding into the global routing graph considers the congestion prices and sink delay prices provided by the resource sharing algorithm (see \cite{BRGTiming2}).
@@ -791,9 +800,6 @@ the soft constraints only in case of rectangular blocks.
 	Whenever the parent of $v$ is placed in a different block than $v$, we compute an approximate shortest path $v$-arborescence for the  sinks in $S_i \cup \Gamma_{Y_{top}}^+(V_i)$,
 	where $\Gamma_{Y_{top}}^+(V_i)$ denotes the successors in other blocks.
 	$Y$ is the union of all these arborescences. The following Theorem is easy to see.\\
-	\textbf{Theorem:}
-	\textit{If no partial pin assignment is given, the Steiner topology $Y$ is an  $(1+\epsilon)$-approximate shortest path arborescence.
-		Each cluster $S_i\neq \emptyset$ is served by a path $Y_{[r,v_i]}$ that  enters block $B_i$ exactly once.}
 	
 	The embedding into the 3D global routing graph traverses the vertices $v\in V(Y)$  bottom-up and embeds sibling paths $\delta^+(v)$
 	until they meet near the position of $v$ (see \cite{BRGTiming2}).

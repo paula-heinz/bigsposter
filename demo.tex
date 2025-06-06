@@ -947,16 +947,12 @@ We first choose an interval (often just a point) on the boundary such that the w
 This interval is then increased  by a constant value to give the router flexibility in avoiding congestion.
 
 We usually allow only a single pin to serve the sinks or source in a block.
-For each block border, we use elementary geometry to compute the minimum detour pin
-interval w.r.t. all blocks on that border.  If blockages prevent
+For each block border, we use elementary geometry to compute the minimum detour pin interval w.r.t. all blocks on that border.  If blockages prevent
 routing through that interval we try the positions at both ends of the
 blockage.  Finally, we take the best interval over all borders.
 
-\textcolor{red}{S: Its' only easy if there is a separating hyper plane relative to each block  separating the block from external sinks/sources}.
-
 To align routing in the first pass we will shrink large intervals to an interval of maximum  length $\delta>0$.
 Similarly, to improve routability we will expand small intervals to a minimum length $\delta$.
-See Figure~\ref{badPIsexample}.
 
 In principle, it could be preferable to allow $k>1$ pins position  per net, e.g. if a root in side a reuse block
 has sinks north and south of a block.
@@ -965,12 +961,14 @@ require to add a multiplexer between pins and sinks in each block.
 
 In this case choosing the best pin positions becomes a kind of facility location problem on the boundary.
 The external sinks/sources are connected through one of the pins/facilities.
+
+
 \blockbreak
 \blocktitle{Flow}
-The overall flow to achieve compatible pin positions is shown in Algorithm~\ref{sec:3pass}.
+The overall flow to achieve compatible pin positions is shown in Algorithm \ref{alg:reuse-alg}.
 We use 3 global routing passes, each with a different purpose, and some preprocessing before each routing pass:
 %TODO is it feedthrough or feethrough???
-\begin{algorithm}[H]
+\begin{algorithm}[H] 
 	\begin{enumerate}
 		\item add in blockages and reuse blockages \label{step:add-blockages}
 		\item choose pin intervals  \label{PIstep}

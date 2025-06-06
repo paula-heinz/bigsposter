@@ -27,7 +27,7 @@
 \definecolor{customviolet}{RGB}{143, 0, 255}
 \author{Heinz, Paula}
 \advisor{Prof.\ Dr.\ Stephan Held}
-\title{Congestion-\& Timing-Aware Pin Assignment with Multiply-Instantiated Blocks}
+\title{Congestion-\& Timing-Aware Pin Assignment with Reuse Blocks}
 \posteryear{2025}
 \email{heinz@dm.uni-bonn.de}
 \institute{Research Institute for Discrete Mathematics}
@@ -417,14 +417,38 @@
     		\node[shape=circle,fill=black,scale=0.4] (sink) at (10.5,3){};
     		\node[shape=circle,fill=black,scale=0.4] (sink2) at (4,2){};
     		
-    		\node[shape=circle,fill=green!60!black,scale=0.4] (port1) at (7,3){};
-    		\node[shape=circle,fill=green!60!black,scale=0.4] (port3) at (4,4){};
-    		\node[shape=circle,fill=green!60!black,scale=0.4] (port4) at (4,4.3){};
-    		\node[shape=circle,fill=green!60!black,scale=0.4] (port2) at (7.3,3){};
+    		\node (port1) at (7,3){};
+    		\node (port3) at (4,4){};
+    		\node (port4) at (4,4.3){};
+    		\node (port2) at (7.3,3){};
     		
     		\draw[-] (4,3) -- (port2) -- (port1) -- (sink);
     		\draw[-] (root)  -- (port3) -- (port4) -- (sink2);
+    		
+    		       	
+    			\begin{scope}[shift={(7.5,3)}, scale=1.5]		      				
+    				\filldraw[fill=white, draw=black] (-0.15, -0.1) rectangle (0.15, 0.1);
+    				\filldraw[fill=black] (-0.15, 0) -- (-0.25, 0.1) -- (-0.25, -0.1) -- cycle;
+    			\end{scope}	
+    		
+    		\begin{scope}[shift={(6.8,3)}, scale=1.5]		      				
+    			\filldraw[fill=white, draw=black] (-0.15, -0.1) rectangle (0.15, 0.1);
+    			\filldraw[fill=black] (-0.15, 0) -- (-0.25, 0.1) -- (-0.25, -0.1) -- cycle;
+    		\end{scope}
+    	
+    	\begin{scope}[shift={(4,4.5)}, scale=1.5, rotate=-90]		      				
+    		\filldraw[fill=white, draw=black] (-0.15, -0.1) rectangle (0.15, 0.1);
+    		\filldraw[fill=black] (-0.15, 0) -- (-0.25, 0.1) -- (-0.25, -0.1) -- cycle;
+    	\end{scope}		  		             	
+    	 	\begin{scope}[shift={(4,3.8)}, scale=1.5, rotate=-90]		      				
+    	 	\filldraw[fill=white, draw=black] (-0.15, -0.1) rectangle (0.15, 0.1);
+    	 	\filldraw[fill=black] (-0.15, 0) -- (-0.25, 0.1) -- (-0.25, -0.1) -- cycle;
+    	 \end{scope}	    		
+    
     	\end{tikzpicture}
+    \raggedright
+    {\footnotesize \begin{spacing}{0.9}
+    		Blocks inside chip area (black rectangle) indicated by different colored rectangles. The black routing connects the source (red) to the sinks. Ports (white boxes) are extracted from routing.\end{spacing}	}
     \end{minipage}\\
 
  \label{sec:modfied_global;_routing}
@@ -457,15 +481,7 @@ A pin assignment of a net and pin graph specifies for each inner vertex of the p
 %
 The overall task is to find pin graphs and pins assignments for all
 inter-block nets that preserve routability and achievability of
-timing constraints.  They should not introduce  much wire length
-overhead.  As a hard constraint the pin positions must enable a DRC \&
-LVS clean routing.
-
-As soft constraints/objectives we aim for a minimum number of
-pins, entering a block at most once to serve sinks in that block, and avoiding
-re-entrance of the same block on a source-sink path in the pin graph.
-While our algorithms will obey hard constraints, we guarantee most of
-the soft constraints only in case of rectangular blocks.
+timing constraints.
 
 
 \begin{comment}
@@ -772,7 +788,7 @@ the soft constraints only in case of rectangular blocks.
 		\item Reuse blocks are entered only once for connecting to the sinks inside (further entries for connections going through them are possible)
 		\item If no port assignment is given, then the length of any source-sink path through the topology
 		should be within a factor $(1+\epsilon)$ of the source-sink distance, (usually $\epsilon=.1$)
-		\item If a (partial) port assignment is given, terminals in blocks with assigned pins are connected over the assigned pin positions.
+		\item If a (partial) port assignment is given, assigned pins are connected over the assigned pin positions.
 	\end{itemize}
 	We use a two step Steiner tree oracle for the nets in  global routing.
 	First, we compute a 2D obstacle-avoiding Steiner tree topology  that is then embedded into the 3D global routing graph.
@@ -878,6 +894,8 @@ When doing that naively, multiple problems occur:
 	\draw[thin,gray,dashed] (r33) -- (s333);
 	\draw[thin,gray,dashed] (r44) -- (s444);
 	
+	\fill[gray,opacity=0.4] (5.8, 2.5) rectangle (6.7, 10.5);
+	\fill[gray,opacity=0.4] (5.8, -2.5) rectangle (6.7, -10.5);
 	
 	
 	\draw[black] (-0.3,-10.8) rectangle ++ (0.6+6+0.5+6, 0.6+8+8+4+1);
@@ -885,7 +903,7 @@ When doing that naively, multiple problems occur:
 \end{minipage}\\
 
 \begin{enumerate}
-\item \textbf{Neighbouring Reuse Blocks}\\
+\item \textbf{Neighboring Reuse Blocks}\\
 Assume a port positions for serving sinks in a reuse block is determined. If that port position is lying at the border of a corridor, then the only way to serve that port, and thus the sinks, is by a straight wire segment across that corridor. This determines the port position at the abutting block. To avoid such interdependencies between reuse blocks, we completely block corridors between neighboring reuse continents (gray blockages above).  % TODO add those blockages
 %TODO make this shorter
 \item \textbf{Blockages around Reuse Blocks}\\
@@ -991,10 +1009,8 @@ The external sinks/sources are connected through one of the pins/facilities.
 %When the pin positions of the \textit{leader} are forced onto the followers an ideal pin position for the net $N_1$ in the leader $B_1$ could cause huge detours for one of the corresponding net-block combinations $(N_j,B_j)\in [(N_1,B_1)]$ in the followers (see \ref{figure}). Even worse, the pin position on the leader could even be infeasible for the follower. Our way to avoid such situations that are pin intervals (\ref{PIsection}) and additional reuse way to copy blockages \ref{reuseblockagessection}. %Maybe refer to figure
 
 \item [{4.}] \textbf{Feedthroughs}\\
- Floating terminals  must be connected to pins and create pins  for \textit{feedthroughs}, i.e.\
-nets that are routed through reuse blocks, without connecting to anything inside them. 
-Floating terminals and feedthroughs might be different in each reuse block, but finally, they must be implemented by all reuse blocks. To this end, virtual nets representing such feedthroughs
-or connections to floating terminals are added to the leader, and then those followers where they are not represented already.
+We do not only need to consider pin positions for nets with pins inside the reuse blocks, but also connections going through the reuse blocks, without connecting to anything inside them. We call such connections \textit{feedthroughs}.
+Feedthroughs might be different in each reuse block, but in the end, all feedthroughs need to be implemented by all reuse blocks. To achieve that, virtual nets representing such feedthroughs are added to the leader, before the pins from the leader are forced on the followers.
 \end{enumerate}
 %TODO is this said else where? we allow only one entry or exit for connecting the terminals to the root, or the signal from the root leaving the block. Therefore there is at most one pin for each net-block-combination... 
 %TODO say that connections between them are forbidden

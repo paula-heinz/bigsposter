@@ -848,7 +848,7 @@ For that to work correctly, we need to consider two things:
 
 \begin{enumerate}
 %TODO make this shorter
-\item[\raisebox{1.3cm}{1.}] \begin{minipage}{0.5\blockwidth}
+\item[\raisebox{2.3cm}{1.}] \begin{minipage}{0.5\blockwidth}
 	
 Pin positions that are good  for the leader might cause huge detours or, due to obstacles around the block borders, even be infeasible for the followers.
 We align the blockage structure around the reuse blocks by adding a copy of every blockage within the border region of the reuse blocks to the equivalent positions around the other reuse blocks. With these extra reuse blockages (orange)  we ensure feasibility. Pin intervals ensure that pin positions lie, if possible, on a shortest source sink path.
@@ -938,7 +938,33 @@ or connections to floating terminals are added to the leader, and then those fol
 %TODO say that connections between them are forbidden
 %TODO somewhere say which that feedthrough sinks might not connect to something, but feedthrough sources always need to be served 
 % TODO cite fine
-\subsection{Flow}\label{sec:3pass}
+\textbf{Pin Intervals:}
+We ensure to find pin positions that are good for every equivalent block and visible in the first routing pass as follows:
+We predefine pin intervals at the block borders, that the router is forced to route through.
+We first choose an interval (often just a point) on the boundary such that the worst detour w.r.t. the  $\ell_1$-metric among all equivalent blocks in an individual net routing is minimized.
+This interval is then increased  by a constant value to give the router flexibility in avoiding congestion.
+
+We usually allow only a single pin to serve the sinks or source in a block.
+For each block border, we use elementary geometry to compute the minimum detour pin
+interval w.r.t. all blocks on that border.  If blockages prevent
+routing through that interval we try the positions at both ends of the
+blockage.  Finally, we take the best interval over all borders.
+
+\textcolor{red}{S: Its' only easy if there is a separating hyper plane relative to each block  separating the block from external sinks/sources}.
+
+To align routing in the first pass we will shrink large intervals to an interval of maximum  length $\delta>0$.
+Similarly, to improve routability we will expand small intervals to a minimum length $\delta$.
+See Figure~\ref{badPIsexample}.
+
+In principle, it could be preferable to allow $k>1$ pins position  per net, e.g. if a root in side a reuse block
+has sinks north and south of a block.
+If the net connects to sinks inside a reuse block, multiple pin positions, could still be interesting but would
+require to add a multiplexer between pins and sinks in each block.
+
+In this case choosing the best pin positions becomes a kind of facility location problem on the boundary.
+The external sinks/sources are connected through one of the pins/facilities.
+\blockbreak
+\blocktitle{Flow}
 The overall flow to achieve compatible pin positions is shown in Algorithm~\ref{sec:3pass}.
 We use 3 global routing passes, each with a different purpose, and some preprocessing before each routing pass:
 %TODO is it feedthrough or feethrough???
@@ -1589,34 +1615,7 @@ The second routing pass with track assignment (only necessary at the borders of 
 \end{tikzpicture}\end{minipage}\\
 \end{tabular}
 
-\blocktitle{Pin Intervals}\label{sec:pinintervals}
-%TODO fix notation, less introduction
-%TODO Add picture from reduction
 
-We ensure to find pin positions that are good for every equivalent block and visible in the first routing pass as follows:
-We predefine pin intervals at the block borders, that the router is forced to route through.
-We first choose an interval (often just a point) on the boundary such that the worst detour w.r.t. the  $\ell_1$-metric among all equivalent blocks in an individual net routing is minimized.
-This interval is then increased  by a constant value to give the router flexibility in avoiding congestion.
-
-We usually allow only a single pin to serve the sinks or source in a block.
-For each block border, we use elementary geometry to compute the minimum detour pin
-interval w.r.t. all blocks on that border.  If blockages prevent
-routing through that interval we try the positions at both ends of the
-blockage.  Finally, we take the best interval over all borders.
-
-\textcolor{red}{S: Its' only easy if there is a separating hyper plane relative to each block  separating the block from external sinks/sources}.
-
-To align routing in the first pass we will shrink large intervals to an interval of maximum  length $\delta>0$.
-Similarly, to improve routability we will expand small intervals to a minimum length $\delta$.
-See Figure~\ref{badPIsexample}.
-
-In principle, it could be preferable to allow $k>1$ pins position  per net, e.g. if a root in side a reuse block
-has sinks north and south of a block.
-If the net connects to sinks inside a reuse block, multiple pin positions, could still be interesting but would
-require to add a multiplexer between pins and sinks in each block.
-
-In this case choosing the best pin positions becomes a kind of facility location problem on the boundary.
-The external sinks/sources are connected through one of the pins/facilities.
 
 
 %% \begin{comment}

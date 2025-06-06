@@ -811,25 +811,24 @@ the soft constraints only in case of rectangular blocks.
  \begin{blockrow}
  	
 \blocktitle{Multiply Instantiated Reuse Blocks}
-\begin{minipage}{0.6\blockwidth}
+\begin{minipage}{0.7\blockwidth}
 Equivalent reuse blocks (blue) can be mirrored on the x- and y- axis with respect to each other (indicated by {\sffamily F}).
 We assume that we are given an equivalence relation on the terminals in different blocks $B_i$ ($i\in [k]$), with equivalent terminals being at equivalent positions relative to their blocks.
 
 If two terminals  in block $B_i$ are part of a inter-block net $N$, their equivalent terminals in another block must be connected
-to a common net or must both be floating (unconnected). In the following we call a terminal \textit{floating}, if it is not connected to a net
-but equivalent to a terminal in a inter-block net. 
+to a common net or must both be floating (unconnected). Floating terminals can be eliminated by adding artificial pins and nets.
 %
 We need to achieve pin positions at the same relative border positions and equivalent pin graphs on the  reuse blocks $B_1,...,B_k$, to be able to use the same routing for all reuse blocks.
 
 We compute pin positions (or more precisely pin graph parts) on one arbitrarily chosen reuse block $B_1$ that we call the \textit{leader} (solid line). 
 Then, we  force these positions on the other reuse blocks $B_1\dots, B_k$, called the \textit{followers} (dashed lines). 
-For that to work correctly, we need to consider two things: 
+When doing that naively, multiple problems occur: 
 
 	
 	
-\end{minipage}
-\begin{minipage}{0.3\blockwidth}
-	\centering\begin{tikzpicture}[scale=0.27]
+\end{minipage}\hfill
+\begin{minipage}{0.25\blockwidth}
+	\centering\begin{tikzpicture}[scale=0.29]
 	\draw[thick,dashed,blue] (0,2.5) rectangle ++ (6,8);
 	\draw[thick,dashed,blue] (6.5,2.5) rectangle ++ (6,8);
 	\draw[thick,dashed,blue] (0,-2.5) rectangle ++ (6,-8);
@@ -839,24 +838,84 @@ For that to work correctly, we need to consider two things:
 	\node at (3, -6.5) { \textcolor{gray}{{\sffamily F}}};
 	\node at (9.5, -6.5) { \textcolor{gray}{{\sffamily F}}};
 	
-	\draw[thin,dashed,gray] (0,-2) rectangle ++ (2.25,4);
-	\draw[thin,dashed,gray] (2.75,-2) rectangle ++ (2.25,4);
-	\draw[thin,dashed,gray] (5.5,-2) rectangle ++ (4.5,4);
-	\draw[thin,dashed,gray] (10.5,-2) rectangle ++ (2,4);
+	\draw[thin,gray] (0,-2) rectangle ++ (2.25,4);
+	\draw[thin,gray] (2.75,-2) rectangle ++ (2.25,4);
+	\draw[thin,gray] (5.5,-2) rectangle ++ (4.5,4);
+	\draw[thin,gray] (10.5,-2) rectangle ++ (2,4);
+	
+	\node[draw=red, fill=red, rectangle,scale=0.4] (r1) at (1,1) {};
+	\node[draw=red, fill=red, rectangle,scale=0.4] (r3) at (11.2,0.6) {};
+	\node[shape=circle, draw=black, fill=black, scale=0.3] (s1) at (3,5) {};
+	\node[shape=circle, draw=black, fill=black, scale=0.3] (s11) at (5,4) {};
+	\node[shape=circle, draw=black, fill=black, scale=0.3] (s2) at (3,-5) {};
+	\node[shape=circle, draw=black, fill=black, scale=0.3] (s22) at (5,-4) {};
+	\node[shape=circle, draw=black, fill=black, scale=0.3] (s3) at (3+6.5,5) {};
+	\node[shape=circle, draw=black, fill=black, scale=0.3] (s33) at (5+6.5,4) {};
+	\node[shape=circle, draw=black, fill=black, scale=0.3] (s4) at (3+6.5,-5) {};
+	\node[shape=circle, draw=black, fill=black, scale=0.3] (s44) at (5+6.5,-4) {};
+	
+	\draw[thin,gray,dashed] (r1) -- (s1);
+	\draw[thin,gray,dashed] (r1) -- (s11);
+	\draw[thin,gray,dashed] (r1) -- (s2);
+	\draw[thin,gray,dashed] (r1) -- (s22);
+	\draw[thin,gray,dashed] (r1) -- (s4);
+	\draw[thin,gray,dashed] (r1) -- (s44);
+	\draw[thin,gray,dashed] (r3) -- (s3);
+	\draw[thin,gray,dashed] (r3) -- (s33);
+	
+	\node[draw=red, fill=red, rectangle,scale=0.4] (r11) at (5,7) {};
+	\node[draw=red, fill=red, rectangle,scale=0.4] (r22) at (5,-7) {};
+	\node[draw=red, fill=red, rectangle,scale=0.4] (r33) at (5+6.5,7) {};
+	\node[draw=red, fill=red, rectangle,scale=0.4] (r44) at (5+6.5,-7) {};
+	
+	\node[shape=circle, draw=black, fill=black, scale=0.3] (s111) at (1,8) {};
+	\node[shape=circle, draw=black, fill=black, scale=0.3] (s222) at (1,-8) {};
+	\node[shape=circle, draw=black, fill=black, scale=0.3] (s333) at (1+6.5,8) {};
+	\node[shape=circle, draw=black, fill=black, scale=0.3] (s444) at (1+6.5,-8) {};
+	
+	\draw[thin,gray,dashed] (r11) -- (s111);
+	\draw[thin,gray,dashed] (r22) -- (s222);
+	\draw[thin,gray,dashed] (r33) -- (s333);
+	\draw[thin,gray,dashed] (r44) -- (s444);
+	
+	
 	
 	\draw[black] (-0.3,-10.8) rectangle ++ (0.6+6+0.5+6, 0.6+8+8+4+1);
 \end{tikzpicture}
 \end{minipage}\\
 
 \begin{enumerate}
+\item \textbf{Neighbouring Reuse Blocks}\\
+Assume a port positions for serving sinks in a reuse block is determined. If that port position is lying at the border of a corridor, then the only way to serve that port, and thus the sinks, is by a straight wire segment across that corridor. This determines the port position at the abutting block. To avoid such interdependencies between reuse blocks, we completely block corridors between neighboring reuse continents (gray blockages above).  % TODO add those blockages
 %TODO make this shorter
-\item[\raisebox{2.3cm}{1.}] \begin{minipage}{0.5\blockwidth}
-	
-Pin positions that are good  for the leader might cause huge detours or, due to obstacles around the block borders, even be infeasible for the followers.
+\item \textbf{Blockages around Reuse Blocks}\\
+Due to obstacles around the block borders, pin positions that are feasible on the leader might be unreachable by any routing on the followers.
 We align the blockage structure around the reuse blocks by adding a copy of every blockage within the border region of the reuse blocks to the equivalent positions around the other reuse blocks. With these extra reuse blockages (orange)  we ensure feasibility. Pin intervals ensure that pin positions lie, if possible, on a shortest source sink path.
+\item \textbf{Detours forced by bad Pin Positions}\\	
+ \begin{minipage}{0.5\blockwidth}
+Pin positions that are good for the leader might cause huge unnecessary detours  for the followers. 
+To avoid that, we predefine pin intervals at the block borders, that the router is forced to route through.
+We first choose an interval (often just a point) on the boundary such that the worst detour w.r.t. the  $\ell_1$-metric among all equivalent blocks in an individual net routing is minimized.
+This interval is then increased  by a constant value to give the router flexibility in avoiding congestion. To roughly align routing in the first pass, we shrink large intervals.
+
+We usually allow only a single pin to serve the sinks or source in a block.
+For each block border, we use elementary geometry to compute the minimum detour pin interval w.r.t. all blocks on that border.  If blockages prevent
+routing through that interval we try the positions at both ends of the
+blockage.  Finally, we take the best interval over all borders.
+
+To align routing in the first pass we will shrink large intervals to an interval of maximum  length $\delta>0$.
+Similarly, to improve routability we will expand small intervals to a minimum length $\delta$.
+
+In principle, it could be preferable to allow $k>1$ pins position  per net, e.g. if a root in side a reuse block
+has sinks north and south of a block.
+If the net connects to sinks inside a reuse block, multiple pin positions, could still be interesting but would
+require to add a multiplexer between pins and sinks in each block.
+
+In this case choosing the best pin positions becomes a kind of facility location problem on the boundary.
+The external sinks/sources are connected through one of the pins/facilities.
 \end{minipage}
 \hfill
-\begin{minipage}{0.4\blockwidth}
+\begin{minipage}{0.4\blockwidth} %TODO blockages are missing
 	\centering
 \begin{tikzpicture}
 	% Parameters
@@ -926,12 +985,13 @@ We align the blockage structure around the reuse blocks by adding a copy of ever
 \end{tikzpicture}	
 \raggedright
 {\footnotesize \begin{spacing}{0.9}
-		Possible routing without reuse blocks. When the pin position of this routing from the leader is forced on the follower, a huge detour is caused(dashed).\end{spacing}	}
+		Possible routing without pin intervals. When the pin position of this routing from the leader is forced on the follower, a huge detour is caused (dashed).\end{spacing}	}
 \end{minipage}
 %When the pins of a net $N_i$ inside $B_i$ are at the same relative positions as the pins of a net $N_j$ inside $B_j$, the respective pin graph parts have to be the same and we say that $(N_j,B_j)\sim (N_j,B_j)$ inducing an an equivalence relation on net-block combinations.
 %When the pin positions of the \textit{leader} are forced onto the followers an ideal pin position for the net $N_1$ in the leader $B_1$ could cause huge detours for one of the corresponding net-block combinations $(N_j,B_j)\in [(N_1,B_1)]$ in the followers (see \ref{figure}). Even worse, the pin position on the leader could even be infeasible for the follower. Our way to avoid such situations that are pin intervals (\ref{PIsection}) and additional reuse way to copy blockages \ref{reuseblockagessection}. %Maybe refer to figure
 
-\item [{2.}] Floating terminals  must be connected to pins and create pins  for \textit{feedthroughs}, i.e.\
+\item [{4.}] \textbf{Feedthroughs}\\
+ Floating terminals  must be connected to pins and create pins  for \textit{feedthroughs}, i.e.\
 nets that are routed through reuse blocks, without connecting to anything inside them. 
 Floating terminals and feedthroughs might be different in each reuse block, but finally, they must be implemented by all reuse blocks. To this end, virtual nets representing such feedthroughs
 or connections to floating terminals are added to the leader, and then those followers where they are not represented already.
@@ -940,29 +1000,6 @@ or connections to floating terminals are added to the leader, and then those fol
 %TODO say that connections between them are forbidden
 %TODO somewhere say which that feedthrough sinks might not connect to something, but feedthrough sources always need to be served 
 % TODO cite fine
-\textbf{Pin Intervals:}
-We ensure to find pin positions that are good for every equivalent block and visible in the first routing pass as follows:
-We predefine pin intervals at the block borders, that the router is forced to route through.
-We first choose an interval (often just a point) on the boundary such that the worst detour w.r.t. the  $\ell_1$-metric among all equivalent blocks in an individual net routing is minimized.
-This interval is then increased  by a constant value to give the router flexibility in avoiding congestion.
-
-We usually allow only a single pin to serve the sinks or source in a block.
-For each block border, we use elementary geometry to compute the minimum detour pin interval w.r.t. all blocks on that border.  If blockages prevent
-routing through that interval we try the positions at both ends of the
-blockage.  Finally, we take the best interval over all borders.
-
-To align routing in the first pass we will shrink large intervals to an interval of maximum  length $\delta>0$.
-Similarly, to improve routability we will expand small intervals to a minimum length $\delta$.
-
-In principle, it could be preferable to allow $k>1$ pins position  per net, e.g. if a root in side a reuse block
-has sinks north and south of a block.
-If the net connects to sinks inside a reuse block, multiple pin positions, could still be interesting but would
-require to add a multiplexer between pins and sinks in each block.
-
-In this case choosing the best pin positions becomes a kind of facility location problem on the boundary.
-The external sinks/sources are connected through one of the pins/facilities.
-
-
 \blockbreak
 \blocktitle{Flow}
 The overall flow to achieve compatible pin positions is shown in Algorithm \ref{alg:reuse-alg}.
@@ -987,9 +1024,9 @@ We use 3 global routing passes, each with a different purpose, and some preproce
 \end{algorithm}
 \begin{tabular}{cc}
 	\begin{minipage}{0.5\blockwidth}
-	
+	%TODO fix this
 
-		  Steps~\ref{step:add-blockages} and \ref{PIstep} ensure that reuse blocks have the same set of feasible positions and use pin intervals imposing  similar and good  positions the first routing pass, which is needed to determine the feedthroughs through reuse blocks
+		  Steps~\ref{step:add-blockages} and \ref{PIstep} ensure that reuse blocks have similar and good and feasible pin positions in the first routing pass, which is needed to determine the feedthroughs through reuse blocks.
 		   	\end{minipage}    &\begin{minipage}{0.49\blockwidth}
 		  \centering\begin{tikzpicture}
 	% Parameters
@@ -1091,7 +1128,7 @@ We use 3 global routing passes, each with a different purpose, and some preproce
 \multicolumn{2}{c}{} \\
 \begin{minipage}{0.5\blockwidth}
 In step \ref{step:create-artificial-feedthroughs} we create for each feedthrough through a reuse block an artificial net with artificial pins on the boundary of each equivalent block. The positions of the artificial pins in the leader will determine the positions of the pins of this feedthrough in the follower.
-This may leave overlapping pins. Thus, we relax pin positions to intervals (step \ref{step:relaxpositions}) to give the router enough freedom to legalize the pin positions. 
+This may leave overlapping pins. Thus, we relax pin positions to intervals (step \ref{step:relaxpositions}) to give the router enough freedom to legalize the pin positions. The gray dashed edges are the edges of the partial pin assignment.
 
 \end{minipage}&\begin{minipage}{0.49\blockwidth}
 \centering

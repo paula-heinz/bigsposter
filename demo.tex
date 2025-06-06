@@ -27,7 +27,7 @@
 \definecolor{customviolet}{RGB}{143, 0, 255}
 \author{Heinz, Paula}
 \advisor{Prof.\ Dr.\ Stephan Held}
-\title{Congestion-\& Timing-Aware Pin Assignment with Reuse Blocks}
+\title{Congestion-\& Timing-Aware Port Assignment with Reuse Blocks}
 \posteryear{2025}
 \email{heinz@dm.uni-bonn.de}
 \institute{Research Institute for Discrete Mathematics}
@@ -448,11 +448,11 @@
     	\end{tikzpicture}
     \raggedright
     {\footnotesize \begin{spacing}{0.9}
-    		Blocks inside chip area (black rectangle) indicated by different colored rectangles. The black routing connects the source (red) to the sinks. Ports (white boxes) are extracted from routing.\end{spacing}	}
+    		Blocks inside chip area (black rectangle) indicated by different colored rectangles. The black routing connects the source (red) to the sinks, entering and the blocks only via ports (white boxes).\end{spacing}	}
     \end{minipage}\\
 
  \label{sec:modfied_global;_routing}
- The goal is to achieve a pin assignment with the following properties:
+ The goal is to achieve a port assignment with the following properties:
  \begin{enumerate}
  	\item \textbf{low inter-block dependency} (i.e. few ports)
  	\item \textbf{enable fast signals} (ports lying on shortest source-to-sink path)
@@ -463,23 +463,23 @@
  circuit is sliced into almost abutting blocks that ``own'' the
  complete metal stack above their area, which is employed for example
  on IBM microprocessors \cite{kazda+pangea:21}.
-Our general approach for pin assignment is to run global routing with
+Our general approach for port assignment is to run global routing with
 global static timing constraints \cite{BRGTiming2}. Then, track
 assignment \cite{BatterywalaTrackAssign,duran:2024} is used  to legalize wires crossing block borders in a DRC \& LVS clean way.
-Pin positions and shapes are simply cut from the legalized wires.
+port positions and shapes are simply cut from the legalized wires.
 Preliminaries of this section can be found in \cite{kazda+pangea:21}. 
 
 \textbf{Problem Definition}
-A pin graph for a net rooted at $r$ is an $r$-arborescence whose
+A port graph for a net rooted at $r$ is an $r$-arborescence whose
 leaves are the terminal sinks, whose inner vertices are located on block
 borders or represent segments of block borders. Its edges connect pins 
 within a block or a gap.
 It determines how the net is distributed to the blocks.
 
-A pin assignment of a net and pin graph specifies for each inner vertex of the pin graph. A partial pin assignment only assigns pin positions to some blocks. %TODO
+A port assignment of a net and port graph specifies for each inner vertex of the port graph. A partial port assignment only assigns port positions to some blocks. %TODO
 
 %
-The overall task is to find pin graphs and pins assignments for all
+The overall task is to find port graphs and pins assignments for all
 inter-block nets that preserve routability and achievability of
 timing constraints.
 
@@ -488,15 +488,15 @@ timing constraints.
 	
 
   \blocktitle{Previous work}
-  Early pin assignment algorithms were based on concentric circuits \cite{koren1972pin}
+  Early port assignment algorithms were based on concentric circuits \cite{koren1972pin}
   and topological models \cite{brady1984approach}.
-  Later, pin assignment was combined with global routing
+  Later, port assignment was combined with global routing
   \cite{cong1991pin, wang1991simultaneous, KoideWY-PinAssignmentWithGLobalRouting96, Chen+IntegratedFloorplanningAndInterconnectPlanning:1999},
   considering congestion (essentially) on the block borders using a so-called channel connection graph, and deriving
-  pin positions from global routing. Among these works,  \cite{wang1991simultaneous}  allows the creation of feedthrough routes.
-  An integration of pin assignment  with floorplanning for two-pin nets is considered in  \cite{pedram1990floorplanning}.
+  port positions from global routing. Among these works,  \cite{wang1991simultaneous}  allows the creation of feedthrough routes.
+  An integration of port assignment  with floorplanning for two-port nets is considered in  \cite{pedram1990floorplanning}.
   
-  Minimum-cost flow algorithms for laying out all 2-pin nets from one
+  Minimum-cost flow algorithms for laying out all 2-port nets from one
   block to all others simultaneously were used \cite{xiang2003min}, also
   including buffer planning \cite{xiang2005algorithm}.
   
@@ -508,11 +508,11 @@ timing constraints.
   \blockbreak
 \end{comment}
 \blockbreak
-  \blocktitle{Routing Modifications  for Pin Assignment}
+  \blocktitle{Routing Modifications  for Port Assignment}
  
   \textbf{Border Blockages \& Adjusted Tiles}
   \label{sec:tiles_n_border_blockages}
-  To enable easy track assignment and extraction of pin assignments,  wires
+  To enable easy track assignment and extraction of port assignments,  wires
   need to  cross block boundaries with straight segments  w/o interference by vias or jogs near the border.
   We forbid any jogs in global routing and track assignment.
   
@@ -658,7 +658,7 @@ timing constraints.
  				%\draw[green!60!black,line width=2pt, opacity=0.3] (0 + 0.2*\colwidth,\y) -- (\ncols*\colwidth ,\y);
  			}	
  			
- 			% extract pin postions (take y positions from after TA)
+ 			% extract port postions (take y positions from after TA)
  			\def\pinwidth{0.15}
  			
  			%    \foreach \y in {-1.8,-2.2,-2.4,-2.6,-3.2,-4.6,-4.8,-5.6,} {
@@ -739,7 +739,7 @@ timing constraints.
  				\draw[green!60!black,line width=0.22cm, opacity=0.3] (0 + 0.2*\colwidth,\y) -- (\ncols*\colwidth ,\y);
  			}	
  			
- 			% extract pin postions (take y positions from after TA)
+ 			% extract port postions (take y positions from after TA)
  			\def\pinwidth{0.15}
  			
  			
@@ -788,7 +788,7 @@ timing constraints.
 		\item Reuse blocks are entered only once for connecting to the sinks inside (further entries for connections going through them are possible)
 		\item If no port assignment is given, then the length of any source-sink path through the topology
 		should be within a factor $(1+\epsilon)$ of the source-sink distance, (usually $\epsilon=.1$)
-		\item If a (partial) port assignment is given, assigned pins are connected over the assigned pin positions.
+		\item If a (partial) port assignment is given, assigned pins are connected over the assigned port positions.
 	\end{itemize}
 	We use a two step Steiner tree oracle for the nets in  global routing.
 	First, we compute a 2D obstacle-avoiding Steiner tree topology  that is then embedded into the 3D global routing graph.
@@ -805,7 +805,7 @@ timing constraints.
 	
 	First, we cluster the sinks $S = S_1\cdot{\cup}\dots\cdot{\cup} S_n$ by the containing block and add a new cluster root $v_i$ for each non-empty cluster $S_i \neq\emptyset$ ($i\in [k]$).
 	We place  $v_i$ at  the projection of the root onto the bounding box of $S_i$. 
-	In the reuse setting (see Section~\ref{sec:reuse}), we might be given a partial pin assignment, i.e. predefined input pin positions for some blocks. %TODO {Das muss spaeter noch besser beschrieben werden}
+	In the reuse setting (see Section~\ref{sec:reuse}), we might be given a partial port assignment, i.e. predefined input port positions for some blocks. %TODO {Das muss spaeter noch besser beschrieben werden}
 	
 	
 	Now, we compute a  blockage-avoiding approximate geometric shortest path $r$-arborescence $Y_{top}$ with the cluster roots as sinks.
@@ -834,9 +834,9 @@ We assume that we are given an equivalence relation on the terminals in differen
 If two terminals  in block $B_i$ are part of a inter-block net $N$, their equivalent terminals in another block must be connected
 to a common net or must both be floating (unconnected). Floating terminals can be eliminated by adding artificial pins and nets.
 %
-We need to achieve pin positions at the same relative border positions and equivalent pin graphs on the  reuse blocks $B_1,...,B_k$, to be able to use the same routing for all reuse blocks.
+We need to achieve port positions at the same relative border positions and equivalent port graphs on the  reuse blocks $B_1,...,B_k$, to be able to use the same routing for all reuse blocks.
 
-We compute pin positions (or more precisely pin graph parts) on one arbitrarily chosen reuse block $B_1$ that we call the \textit{leader} (solid line). 
+We compute port positions (or more precisely port graph parts) on one arbitrarily chosen reuse block $B_1$ that we call the \textit{leader} (solid line). 
 Then, we  force these positions on the other reuse blocks $B_1\dots, B_k$, called the \textit{followers} (dashed lines). 
 When doing that naively, multiple problems occur: 
 
@@ -907,17 +907,17 @@ When doing that naively, multiple problems occur:
 Assume a port positions for serving sinks in a reuse block is determined. If that port position is lying at the border of a corridor, then the only way to serve that port, and thus the sinks, is by a straight wire segment across that corridor. This determines the port position at the abutting block. To avoid such interdependencies between reuse blocks, we completely block corridors between neighboring reuse continents (gray blockages above).  % TODO add those blockages
 %TODO make this shorter
 \item \textbf{Blockages around Reuse Blocks}\\
-Due to obstacles around the block borders, pin positions that are feasible on the leader might be unreachable by any routing on the followers.
-We align the blockage structure around the reuse blocks by adding a copy of every blockage within the border region of the reuse blocks to the equivalent positions around the other reuse blocks. With these extra reuse blockages (orange)  we ensure feasibility. Pin intervals ensure that pin positions lie, if possible, on a shortest source sink path.
-\item \textbf{Detours forced by bad Pin Positions}\\	
+Due to obstacles around the block borders, port positions that are feasible on the leader might be unreachable by any routing on the followers.
+We align the blockage structure around the reuse blocks by adding a copy of every blockage within the border region of the reuse blocks to the equivalent positions around the other reuse blocks. With these extra reuse blockages (orange)  we ensure feasibility. port intervals ensure that port positions lie, if possible, on a shortest source sink path.
+\item \textbf{Detours forced by bad Port Positions}\\	
  \begin{minipage}{0.5\blockwidth}
-Pin positions that are good for the leader might cause huge unnecessary detours  for the followers. 
-To avoid that, we predefine pin intervals at the block borders, that the router is forced to route through.
+port positions that are good for the leader might cause huge unnecessary detours  for the followers. 
+To avoid that, we predefine port intervals at the block borders, that the router is forced to route through.
 We first choose an interval (often just a point) on the boundary such that the worst detour w.r.t. the  $\ell_1$-metric among all equivalent blocks in an individual net routing is minimized.
 This interval is then increased  by a constant value to give the router flexibility in avoiding congestion. To roughly align routing in the first pass, we shrink large intervals.
 
-We usually allow only a single pin to serve the sinks or source in a block.
-For each block border, we use elementary geometry to compute the minimum detour pin interval w.r.t. all blocks on that border.  If blockages prevent
+We usually allow only a single port to serve the sinks or source in a block.
+For each block border, we use elementary geometry to compute the minimum detour port interval w.r.t. all blocks on that border.  If blockages prevent
 routing through that interval we try the positions at both ends of the
 blockage.  Finally, we take the best interval over all borders.
 
@@ -926,10 +926,10 @@ Similarly, to improve routability we will expand small intervals to a minimum le
 
 In principle, it could be preferable to allow $k>1$ pins position  per net, e.g. if a root in side a reuse block
 has sinks north and south of a block.
-If the net connects to sinks inside a reuse block, multiple pin positions, could still be interesting but would
+If the net connects to sinks inside a reuse block, multiple port positions, could still be interesting but would
 require to add a multiplexer between pins and sinks in each block.
 
-In this case choosing the best pin positions becomes a kind of facility location problem on the boundary.
+In this case choosing the best port positions becomes a kind of facility location problem on the boundary.
 The external sinks/sources are connected through one of the pins/facilities.
 \end{minipage}
 \hfill
@@ -1003,46 +1003,46 @@ The external sinks/sources are connected through one of the pins/facilities.
 \end{tikzpicture}	
 \raggedright
 {\footnotesize \begin{spacing}{0.9}
-		Possible routing without pin intervals. When the pin position of this routing from the leader is forced on the follower, a huge detour is caused (dashed).\end{spacing}	}
+		Possible routing without port intervals. When the port position of this routing from the leader is forced on the follower, a huge detour is caused (dashed).\end{spacing}	}
 \end{minipage}
-%When the pins of a net $N_i$ inside $B_i$ are at the same relative positions as the pins of a net $N_j$ inside $B_j$, the respective pin graph parts have to be the same and we say that $(N_j,B_j)\sim (N_j,B_j)$ inducing an an equivalence relation on net-block combinations.
-%When the pin positions of the \textit{leader} are forced onto the followers an ideal pin position for the net $N_1$ in the leader $B_1$ could cause huge detours for one of the corresponding net-block combinations $(N_j,B_j)\in [(N_1,B_1)]$ in the followers (see \ref{figure}). Even worse, the pin position on the leader could even be infeasible for the follower. Our way to avoid such situations that are pin intervals (\ref{PIsection}) and additional reuse way to copy blockages \ref{reuseblockagessection}. %Maybe refer to figure
+%When the pins of a net $N_i$ inside $B_i$ are at the same relative positions as the pins of a net $N_j$ inside $B_j$, the respective port graph parts have to be the same and we say that $(N_j,B_j)\sim (N_j,B_j)$ inducing an an equivalence relation on net-block combinations.
+%When the port positions of the \textit{leader} are forced onto the followers an ideal port position for the net $N_1$ in the leader $B_1$ could cause huge detours for one of the corresponding net-block combinations $(N_j,B_j)\in [(N_1,B_1)]$ in the followers (see \ref{figure}). Even worse, the port position on the leader could even be infeasible for the follower. Our way to avoid such situations that are port intervals (\ref{PIsection}) and additional reuse way to copy blockages \ref{reuseblockagessection}. %Maybe refer to figure
 
 \item [{4.}] \textbf{Feedthroughs}\\
-We do not only need to consider pin positions for nets with pins inside the reuse blocks, but also connections going through the reuse blocks, without connecting to anything inside them. We call such connections \textit{feedthroughs}.
+We do not only need to consider port positions for nets with pins inside the reuse blocks, but also connections going through the reuse blocks, without connecting to anything inside them. We call such connections \textit{feedthroughs}.
 Feedthroughs might be different in each reuse block, but in the end, all feedthroughs need to be implemented by all reuse blocks. To achieve that, virtual nets representing such feedthroughs are added to the leader, before the pins from the leader are forced on the followers.
 \end{enumerate}
-%TODO is this said else where? we allow only one entry or exit for connecting the terminals to the root, or the signal from the root leaving the block. Therefore there is at most one pin for each net-block-combination... 
+%TODO is this said else where? we allow only one entry or exit for connecting the terminals to the root, or the signal from the root leaving the block. Therefore there is at most one port for each net-block-combination... 
 %TODO say that connections between them are forbidden
 %TODO somewhere say which that feedthrough sinks might not connect to something, but feedthrough sources always need to be served 
 % TODO cite fine
 \blockbreak
 \blocktitle{Flow}
-The overall flow to achieve compatible pin positions is shown in Algorithm \ref{alg:reuse-alg}.
+The overall flow to achieve compatible port positions is shown in Algorithm \ref{alg:reuse-alg}.
 We use 3 global routing passes, each with a different purpose, and some preprocessing before each routing pass:
 %TODO is it feedthrough or feethrough???
 \begin{algorithm}[H] 
 	\begin{enumerate}
 		\item add in blockages and reuse blockages \label{step:add-blockages}
-		\item choose pin intervals  \label{PIstep}
+		\item choose port intervals  \label{PIstep}
 		\item \textbf{first routing pass w/o track assignment} \label{step:pass1}
 		% TODO Similarly, add virtual nets connecting floating terminals with the boundary.
-	%	Pin positions are bound to an interval around the computed routing position.\label{step:create-artificial-feedthroughs} \textcolor{red}{SH: rephrase this step.}
+	%	port positions are bound to an interval around the computed routing position.\label{step:create-artificial-feedthroughs} \textcolor{red}{SH: rephrase this step.}
 		\item Add virtual nets between artificial pins representing feedthroughs to reuse blocks \label{step:create-artificial-feedthroughs}
-		\item delete pin assignment outside of reuse blocks, relax pin positions to intervals \label{step:relaxpositions}
+		\item delete port assignment outside of reuse blocks, relax port positions to intervals \label{step:relaxpositions}
 		\item \textbf{second routing pass w/ track assignment}
 		\item copy pins assignments from the leader to its followers \label{step:copy-pin-assignment}
-		\item delete pin assignment outside reuse blocks
+		\item delete port assignment outside reuse blocks
 		\item \textbf{third routing pass w/ track assignment}
 	\end{enumerate} % TODO: fix order , always first delete, then force to others
-	\caption{Pin Assignment With Reuse Blocks.}
+	\caption{port Assignment With Reuse Blocks.}
 	\label{alg:reuse-alg}
 \end{algorithm}
 \begin{tabular}{cc}
 	\begin{minipage}{0.5\blockwidth}
 	%TODO fix this
 
-		  Steps~\ref{step:add-blockages} and \ref{PIstep} ensure that reuse blocks have similar and good and feasible pin positions in the first routing pass, which is needed to determine the feedthroughs through reuse blocks.
+		  Steps~\ref{step:add-blockages} and \ref{PIstep} ensure that reuse blocks have similar and good and feasible port positions in the first routing pass, which is needed to determine the feedthroughs through reuse blocks.
 		   	\end{minipage}    &\begin{minipage}{0.49\blockwidth}
 		  \centering\begin{tikzpicture}
 	% Parameters
@@ -1093,7 +1093,7 @@ We use 3 global routing passes, each with a different purpose, and some preproce
 	\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, \corridorwidth-0.1);
 	\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, \corridorwidth-0.1);
 	
-	%pin intervals
+	%port intervals
 	\fill[green, opacity=0.5] (2*\reusewidth+2*\corridorwidth+ \otherwidth-0.1, -0.1) rectangle (2*\reusewidth+2*\corridorwidth+ \otherwidth-0.7, 0.1);
 	\fill[green, opacity=0.5] (0.1, -0.1) rectangle (0.7, 0.1);
 	
@@ -1144,7 +1144,7 @@ We use 3 global routing passes, each with a different purpose, and some preproce
 \multicolumn{2}{c}{} \\
 \begin{minipage}{0.5\blockwidth}
 In step \ref{step:create-artificial-feedthroughs} we create for each feedthrough through a reuse block an artificial net with artificial pins on the boundary of each equivalent block. The positions of the artificial pins in the leader will determine the positions of the pins of this feedthrough in the follower.
-This may leave overlapping pins. Thus, we relax pin positions to intervals (step \ref{step:relaxpositions}) to give the router enough freedom to legalize the pin positions. The gray dashed edges are the edges of the partial pin assignment.
+This may leave overlapping pins. Thus, we relax port positions to intervals (step \ref{step:relaxpositions}) to give the router enough freedom to legalize the port positions. The gray dashed edges are the edges of the partial port assignment.
 
 \end{minipage}&\begin{minipage}{0.49\blockwidth}
 \centering
@@ -1206,7 +1206,7 @@ This may leave overlapping pins. Thus, we relax pin positions to intervals (step
 	\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, \corridorwidth-0.1);
 	\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, \corridorwidth-0.1);
 	
-	%pin intervals
+	%port intervals
 	
 	\fill[green, opacity=0.4] (2*\reusewidth+2*\corridorwidth+ \otherwidth-0.1, -0.1) rectangle (2*\reusewidth+2*\corridorwidth+ \otherwidth-0.7, 0.1);
 	%\fill[green, opacity=0.4] (0, -0.1) rectangle (0.5, 0.1);
@@ -1226,7 +1226,7 @@ This may leave overlapping pins. Thus, we relax pin positions to intervals (step
 		
 	\end{scope}
 	
-	%pin intervals left
+	%port intervals left
 	%		\fill[green, opacity=0.4] (0, -0.1) rectangle (0.5, 0.1);
 	%	 (2*\reusewidth+2*\corridorwidth+ \otherwidth-0.1, -1.2);
 	%		\fill[green, opacity=0.4] (0.1, -0.6) rectangle (-0.1, -1.2);
@@ -1300,7 +1300,7 @@ This may leave overlapping pins. Thus, we relax pin positions to intervals (step
 \multicolumn{2}{c}{} \\
 \begin{minipage}{0.5\blockwidth}
 
-The second routing pass with track assignment (only necessary at the borders of the leader) legalizes  the pin positions the position from the first pass without moving them too much.
+The second routing pass with track assignment (only necessary at the borders of the leader) legalizes  the port positions the position from the first pass without moving them too much.
 
 
 
@@ -1418,7 +1418,7 @@ The second routing pass with track assignment (only necessary at the borders of 
 \end{tikzpicture}\end{minipage}\\
 \multicolumn{2}{c}{} \\
 \begin{minipage}{0.5\blockwidth}
-	Now, we enforce the legal pin positions from the leader on the followers in Step~\ref{step:copy-pin-assignment}.
+	Now, we enforce the legal port positions from the leader on the followers in Step~\ref{step:copy-pin-assignment}.
 	Step~\ref{step:add-blockages} guaranteed that  they are legal for the followers.
 	
 
@@ -1535,7 +1535,7 @@ The second routing pass with track assignment (only necessary at the borders of 
 \end{tikzpicture}\end{minipage}\\
 \multicolumn{2}{c}{} \\
 \begin{minipage}{0.5\blockwidth}
-	The third routing pass adapts the pin assignment on non-reuse blocks to the pin positions on reuse blocks. Track assignment is necessary on all border regions of non-reuse blocks.The ports cut from this routing are returned.
+	The third routing pass adapts the port assignment on non-reuse blocks to the port positions on reuse blocks. Track assignment is necessary on all border regions of non-reuse blocks.The ports cut from this routing are returned.
 \end{minipage}&\begin{minipage}{0.49\blockwidth}
 	\centering\begin{tikzpicture}
 		% Parameters
@@ -1688,23 +1688,23 @@ The second routing pass with track assignment (only necessary at the borders of 
 		%% 	\text{detour}(i, o, p) := \ell_1(i, p) + \ell_1(p, o)^{\mathbb{R}^2 \setminus (0, W) \times (0,H)} - \ell_1(i, o)\text{.}
 		%% \end{equation*}
 	
-	%% If $|\mathcal{I}|=1$ then an optimal pin position on a given boundary $A$ is always given by either the projection $p$ of the inner point to that boundary or, if $p\in B_i$ by one of the at most 2 points in $\partial B_i \cap A$.
+	%% If $|\mathcal{I}|=1$ then an optimal port position on a given boundary $A$ is always given by either the projection $p$ of the inner point to that boundary or, if $p\in B_i$ by one of the at most 2 points in $\partial B_i \cap A$.
 	%% With that one can just iterate over all sides and find the best position.
-	%% Noticing that one can project the outside pins to the boundary, without changing the problem, above case can be solved also if multiple intervals are allowed by choosing pin intervals according to foos (see ... describe maybe with homeomorphy to circle???) 
-	%% In any case, one can compute for each $(i,o)\in \mathcal{I}\times \mathcal{O}$ the linear function $f_{(i,o)}:\partial C\rightarrow\mathbb{R}_{\geq 0}$ of the detour that choosing a pin position would yield for this pair of pins. Computing the pointwise maximum $f_{\max}$ over all such functions, $\text{argmin} f_{\max}$ is then the set of all optimal positions.\\
-	%% However, if the constraint of having only one pin assigned per net block combination causes huge detours, want to allow $k$ pin positions per equivalence class. With that our problem can be formulated as a minimax facility location like problem (with the extra restriction that we only want to place within the boundary, and the detour thing not being a metric...) (explain): %TODO reference
+	%% Noticing that one can project the outside pins to the boundary, without changing the problem, above case can be solved also if multiple intervals are allowed by choosing port intervals according to foos (see ... describe maybe with homeomorphy to circle???) 
+	%% In any case, one can compute for each $(i,o)\in \mathcal{I}\times \mathcal{O}$ the linear function $f_{(i,o)}:\partial C\rightarrow\mathbb{R}_{\geq 0}$ of the detour that choosing a port position would yield for this pair of pins. Computing the pointwise maximum $f_{\max}$ over all such functions, $\text{argmin} f_{\max}$ is then the set of all optimal positions.\\
+	%% However, if the constraint of having only one port assigned per net block combination causes huge detours, want to allow $k$ port positions per equivalence class. With that our problem can be formulated as a minimax facility location like problem (with the extra restriction that we only want to place within the boundary, and the detour thing not being a metric...) (explain): %TODO reference
 	%% Given $\mathcal{I}, \mathcal{O}$ find $P\subseteq\partial C$ s.t. 
 	%% \begin{equation*}
 		%% 	\max_{i\in\mathcal{I}, o \in \mathcal{O}} \min_{p\in P}\text{detour}(i, o, p)
 		%% \end{equation*}
-	%% is minimized. Actually: it is natural to require that every inside pin always connects to the same pin, as the routing needs to be the same in all equivalent blocks and sink pins ($\mathcal{I}$ sink pins is the more interesting case) can only have one input. That leaves us with this formulation:
+	%% is minimized. Actually: it is natural to require that every inside port always connects to the same pin, as the routing needs to be the same in all equivalent blocks and sink pins ($\mathcal{I}$ sink pins is the more interesting case) can only have one input. That leaves us with this formulation:
 	%% \begin{equation*}
 		%% 	\max_{i\in\mathcal{I}} \min_{p\in P}\max_{o \in \mathcal{O}}\text{detour}(i, o, p)
 		%% \end{equation*}
 	%% By choosing $d(i,p)=\max_{o \in O} \text{detour}(i, o, p)$
 	
 	%% One heuristic to finding a good solution would be distributing $k$ pins along the boundary and doing local search.
-	%% If only one side is allowed, no blockages exist,  finding the $k$ optimum pin positions would be the $k$-center problem in dimension 1. %TODO ref
+	%% If only one side is allowed, no blockages exist,  finding the $k$ optimum port positions would be the $k$-center problem in dimension 1. %TODO ref
 	%% For only one side (wlog the north side) one can easily find a good solution, as it is clear that the best solution for a pin is always either right or left to its projection to the boundary of a block. Thus the inner pins can be ordered by their $x$-coordinate s.t. an optimal solution connects consecutive sets of pins to the same pin.
 	%% With that fact we get a runtime of $O(n^k)$ but we can get actually better by e.g. doing binary search for the optimum value. % TODO
 	

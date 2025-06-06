@@ -27,7 +27,7 @@
 \definecolor{customviolet}{RGB}{143, 0, 255}
 \author{Heinz, Paula}
 \advisor{Prof.\ Dr.\ Stephan Held}
-\title{Congestion-\& Timing-Aware Port Assignment with Reuse Blocks}
+\title{Congestion-\& Timing-Aware Port Assignment with Reuse Blocks} %Port assignment in chip design
 \posteryear{2025}
 \email{heinz@dm.uni-bonn.de}
 \institute{Research Institute for Discrete Mathematics}
@@ -1003,7 +1003,9 @@ The external sinks/sources are connected through one of the pins/facilities.
 \end{tikzpicture}	
 \raggedright
 {\footnotesize \begin{spacing}{0.9}
-		Possible routing without port intervals. When the port position of this routing from the leader is forced on the follower, a huge detour is caused (dashed).\end{spacing}	}
+		Possible routing without port intervals. When the port position of this routing from the leader is forced on the follower, a huge detour is caused (dashed).
+		The reuse blockage (orange) was added when aligning the blockage structures around the reuse blocks.
+	\end{spacing}	}
 \end{minipage}
 %When the pins of a net $N_i$ inside $B_i$ are at the same relative positions as the pins of a net $N_j$ inside $B_j$, the respective port graph parts have to be the same and we say that $(N_j,B_j)\sim (N_j,B_j)$ inducing an an equivalence relation on net-block combinations.
 %When the port positions of the \textit{leader} are forced onto the followers an ideal port position for the net $N_1$ in the leader $B_1$ could cause huge detours for one of the corresponding net-block combinations $(N_j,B_j)\in [(N_1,B_1)]$ in the followers (see \ref{figure}). Even worse, the port position on the leader could even be infeasible for the follower. Our way to avoid such situations that are port intervals (\ref{PIsection}) and additional reuse way to copy blockages \ref{reuseblockagessection}. %Maybe refer to figure

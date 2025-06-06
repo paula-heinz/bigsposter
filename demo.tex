@@ -851,7 +851,7 @@ For that to work correctly, we need to consider two things:
 \item[\raisebox{1.3cm}{1.}] \begin{minipage}{0.5\blockwidth}
 	
 Pin positions that are good  for the leader might cause huge detours or, due to obstacles around the block borders, even be infeasible for the followers.
-By aligning the blockage structure around the reuse blocks, we ensure feasibility. Pin intervals ensure that pin positions lie, if possible, on a shortest source sink path.
+We align the blockage structure around the reuse blocks by adding a copy of every blockage within the border region of the reuse blocks to the equivalent positions around the other reuse blocks. With these extra reuse blockages (orange)  we ensure feasibility. Pin intervals ensure that pin positions lie, if possible, on a shortest source sink path.
 \end{minipage}
 \hfill
 \begin{minipage}{0.4\blockwidth}
@@ -901,7 +901,7 @@ By aligning the blockage structure around the reuse blocks, we ensure feasibilit
 	\fill[purple!30, opacity=0.4] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
 	\fill[yellow, opacity=0.4] (\uppersmallwidth- 0.1, \corridorwidth) rectangle (\corridorwidth +\uppersmallwidth+ 0.1, \corridorwidth+\rowheightu);
 	\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, \corridorwidth-0.1);
-	%\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, -0.1);
+	\fill[orange] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, \corridorwidth-0.1);
 	
 	
 
@@ -922,6 +922,9 @@ By aligning the blockage structure around the reuse blocks, we ensure feasibilit
 	
 	
 \end{tikzpicture}	
+\raggedright
+{\footnotesize \begin{spacing}{0.9}
+		Possible routing without reuse blocks. When the pin position of this routing from the leader is forced on the follower, a huge detour is caused(dashed).\end{spacing}	}
 \end{minipage}
 %When the pins of a net $N_i$ inside $B_i$ are at the same relative positions as the pins of a net $N_j$ inside $B_j$, the respective pin graph parts have to be the same and we say that $(N_j,B_j)\sim (N_j,B_j)$ inducing an an equivalence relation on net-block combinations.
 %When the pin positions of the \textit{leader} are forced onto the followers an ideal pin position for the net $N_1$ in the leader $B_1$ could cause huge detours for one of the corresponding net-block combinations $(N_j,B_j)\in [(N_1,B_1)]$ in the followers (see \ref{figure}). Even worse, the pin position on the leader could even be infeasible for the follower. Our way to avoid such situations that are pin intervals (\ref{PIsection}) and additional reuse way to copy blockages \ref{reuseblockagessection}. %Maybe refer to figure
@@ -988,7 +991,7 @@ We use 3 global routing passes, each with a different purpose, and some preproce
 	\node[color=gray, thick, scale=1.5,xscale=-1] at (\reusewidth-0.4,-\rowheightl +0.4) {{\sffamily F}};
 	
 	%blocks
-	\draw[thick,blue] (0,0) rectangle (\reusewidth,0-\rowheightl);
+		\draw[thick,blue,dashed] (0,0) rectangle (\reusewidth,0-\rowheightl);
 	\draw[thick] (\reusewidth+\corridorwidth,0) rectangle(\reusewidth+\corridorwidth+\otherwidth,0-\rowheightl);
 	\draw[thick,blue] (2*\reusewidth+2*\corridorwidth +\otherwidth,0) rectangle(\reusewidth+2*\corridorwidth+\otherwidth,0-\rowheightl);
 	\draw[thick] (2*\reusewidth+2*\corridorwidth +\otherwidth,\corridorwidth) rectangle(\corridorwidth +\uppersmallwidth,\corridorwidth+\rowheightu);
@@ -1101,7 +1104,7 @@ This may leave overlapping pins. Thus, we relax pin positions to intervals (step
 	\node[color=gray, thick, scale=1.5,xscale=-1] at (\reusewidth-0.4,-\rowheightl +0.4) {{\sffamily F}};
 	
 	%blocks
-	\draw[thick,blue] (0,0) rectangle (\reusewidth,0-\rowheightl);
+		\draw[thick,blue,dashed] (0,0) rectangle (\reusewidth,0-\rowheightl);
 	\draw[thick] (\reusewidth+\corridorwidth,0) rectangle(\reusewidth+\corridorwidth+\otherwidth,0-\rowheightl);
 	\draw[thick,blue] (2*\reusewidth+2*\corridorwidth +\otherwidth,0) rectangle(\reusewidth+2*\corridorwidth+\otherwidth,0-\rowheightl);
 	\draw[thick] (2*\reusewidth+2*\corridorwidth +\otherwidth,\corridorwidth) rectangle(\corridorwidth +\uppersmallwidth,\corridorwidth+\rowheightu);
@@ -1249,7 +1252,7 @@ The second routing pass with track assignment (only necessary at the borders of 
 	\node[color=gray, thick, scale=1.5,xscale=-1] at (\reusewidth-0.4,-\rowheightl +0.4) {{\sffamily F}};
 	
 	%blocks
-	\draw[thick,blue] (0,0) rectangle (\reusewidth,0-\rowheightl);
+		\draw[thick,blue,dashed] (0,0) rectangle (\reusewidth,0-\rowheightl);
 	\draw[thick] (\reusewidth+\corridorwidth,0) rectangle(\reusewidth+\corridorwidth+\otherwidth,0-\rowheightl);
 	\draw[thick,blue] (2*\reusewidth+2*\corridorwidth +\otherwidth,0) rectangle(\reusewidth+2*\corridorwidth+\otherwidth,0-\rowheightl);
 	\draw[thick] (2*\reusewidth+2*\corridorwidth +\otherwidth,\corridorwidth) rectangle(\corridorwidth +\uppersmallwidth,\corridorwidth+\rowheightu);
@@ -1375,7 +1378,7 @@ The second routing pass with track assignment (only necessary at the borders of 
 		\node[color=gray, thick, scale=1.5,xscale=-1] at (\reusewidth-0.4,-\rowheightl +0.4) {{\sffamily F}};
 		
 		%blocks
-		\draw[thick,blue] (0,0) rectangle (\reusewidth,0-\rowheightl);
+			\draw[thick,blue,dashed] (0,0) rectangle (\reusewidth,0-\rowheightl);
 		\draw[thick] (\reusewidth+\corridorwidth,0) rectangle(\reusewidth+\corridorwidth+\otherwidth,0-\rowheightl);
 		\draw[thick,blue] (2*\reusewidth+2*\corridorwidth +\otherwidth,0) rectangle(\reusewidth+2*\corridorwidth+\otherwidth,0-\rowheightl);
 		\draw[thick] (2*\reusewidth+2*\corridorwidth +\otherwidth,\corridorwidth) rectangle(\corridorwidth +\uppersmallwidth,\corridorwidth+\rowheightu);
@@ -1475,7 +1478,7 @@ The second routing pass with track assignment (only necessary at the borders of 
 		
 		
 			%blocks
-		\draw[thick,blue] (0,0) rectangle (\reusewidth,0-\rowheightl);
+			\draw[thick,blue,dashed] (0,0) rectangle (\reusewidth,0-\rowheightl);
 		\draw[thick] (\reusewidth+\corridorwidth,0) rectangle(\reusewidth+\corridorwidth+\otherwidth,0-\rowheightl);
 		\draw[thick,blue] (2*\reusewidth+2*\corridorwidth +\otherwidth,0) rectangle(\reusewidth+2*\corridorwidth+\otherwidth,0-\rowheightl);
 		\draw[thick] (2*\reusewidth+2*\corridorwidth +\otherwidth,\corridorwidth) rectangle(\corridorwidth +\uppersmallwidth,\corridorwidth+\rowheightu);

@@ -399,11 +399,8 @@
     \blocktitle{Port Assignment without Reuse Blocks}
     	\begin{minipage}{0.45\blockwidth}
     	 Large integrated circuits are often partitioned into multiple blocks
-    	to reduce tool running times and  parallelize the design process. Port
-    	assignment defines positions and shapes for the interface pins of the
-    	blocks. It has a big impact on signal speeds and routability.
-    
-    
+    	to reduce tool running times and  parallelize the design process. For inter-block nets, port assignment defines the positions and shapes of interface pins. This greatly affects signal delay, routability, and overall design quality.
+        
     \end{minipage}\hspace{0.09\blockwidth}%
     \begin{minipage}{0.45\blockwidth}
     	\begin{tikzpicture}[scale=0.4]
@@ -447,21 +444,21 @@
     
     	\end{tikzpicture}
     \raggedright
-    {\footnotesize \begin{spacing}{0.9}
-    		Blocks inside chip area (black rectangle) indicated by different colored rectangles. The black routing connects the source (red) to the sinks, entering and the blocks only via ports (white boxes).\end{spacing}	}
+    {\tiny \begin{spacing}{0.9}
+    	Blocks within the chip area (black rectangle) are shown as colored dashed rectangles. Routing (black lines) connects the source (red dot) to the sinks, entering and exiting blocks only through ports (white boxes).\end{spacing}	}
     \end{minipage}\\
 
  \label{sec:modfied_global;_routing}
- The goal is to achieve a port assignment with the following properties:
+ The goal is to achieve a port assignment that:
  \begin{enumerate}
- 	\item \textbf{low inter-block dependency} (i.e. few ports)
- 	\item \textbf{enable fast signals} (ports lying on shortest source-to-sink path)
- 	\item \textbf{short total net length/small power consumption}
- 	\item \textbf{prevent routing congestion} (ports spread out)
+ 	\item \textbf{minimizes inter-block dependency} (i.e., few ports)
+ 	\item \textbf{enables fast signals} (ports lying on shortest source-to-sink path)
+ 	\item  \textbf{minimizes total net length and power consumption}
+ 	\item \textbf{prevents routing congestion} (ports well distributed)
  \end{enumerate}
- BonnPangea is tailored but not limited to a setting, where the
+ Our approach is tailored but not limited to a setting, where the
  circuit is sliced into almost abutting blocks that ``own'' the
- complete metal stack above their area, which is employed for example
+ complete metal stack above their area — a method used
  on IBM microprocessors \cite{kazda+pangea:21}.
 Our general approach for port assignment is to run global routing with
 global static timing constraints \cite{BRGTiming2}. Then, track
@@ -503,14 +500,12 @@ It determines how the net is distributed to the blocks.
 \end{comment}
 \blockbreak
   \blocktitle{Routing Modifications  for Port Assignment}
- 
-  \textbf{Border Blockages \& Adjusted Tiles}
-  \label{sec:tiles_n_border_blockages}
+ \textbf{Border Blockages \& Adjusted Tiles}\\
   To enable easy track assignment and extraction of port assignments,  wires
   need to  cross block boundaries with straight segments  w/o interference by vias or jogs near the border.
-  We forbid any jogs in global routing and track assignment.
+  We forbid jogs in global routing and track assignment.
   
- \begin{minipage}{0.5\blockwidth}
+ \begin{minipage}{0.6\blockwidth}
  	
  To prevent vias, we insert a small corridor of blockages parallel to
   block boundaries, slightly extending beyond them, on all layers whose preference direction is parallel
@@ -519,7 +514,7 @@ It determines how the net is distributed to the blocks.
   If two blocks are neighboring, we ensure that the border blockages are filling the  gap between them.
   \end{minipage} 
 \hfill
-   \begin{minipage}{0.3\blockwidth}
+   \begin{minipage}{0.25\blockwidth}
    	
    \centering
   
@@ -581,7 +576,7 @@ It determines how the net is distributed to the blocks.
 	
 	\end{tikzpicture}
 \raggedright
-{\footnotesize \begin{spacing}{0.9}
+{\tiny \begin{spacing}{0.9}
 	 Blockage structure on T-junction of corridors. Blockages on layers with horizontal/vertical prefered direction are purple/yellow, completely blocked areas are gray.\end{spacing}	}
 
 \end{minipage}
@@ -761,39 +756,38 @@ It determines how the net is distributed to the blocks.
  			}		
  			
  		\end{tikzpicture} 
- {\footnotesize \begin{spacing}{0.9}
+ {\tiny \begin{spacing}{0.9}
  		Left: global routing solution respecting border and fill gap obstacles, allowing only horizontal routing
  		Right: pins are added according to wireshapes after track assignment (run only in corridor region)
  		The dashed blue lines are the block borders, in yellow are the border blockages that block vertical layers.
  	\end{spacing}	}
  
- 	
+	Our routing is done in two steps: we first compute a 2D obstacle-avoiding Steiner tree topology, then we  embed it into the 3D global routing graph.
+
 	\blockbreak
 	\textbf{Routing Topologies}\\
-	Our way to generate routing topologies ensures:
-	\begin{itemize}
-		\item Reuse blocks are entered only once for connecting to the sinks inside (further entries for connections going through them are possible)
-		\item If no port assignment is given, then the length of any source-sink path through the topology
-		is within a factor $(1+\epsilon)$ of the source-sink distance, (usually $\epsilon=.1$)
-		\item If a (partial) port assignment is given, assigned pins are connected over the assigned port positions.
-	\end{itemize}
-	We achieve this using a two step Steiner tree oracle for the nets in  global routing.
-	First, we compute a 2D obstacle-avoiding Steiner tree topology  that is then embedded into the 3D global routing graph.
+	We use the following approach to compute 2D Steiner topologies:
+	\begin{enumerate}
+		\item cluster the sinks $S = S_1\cdot{\cup}\dots\cdot{\cup} S_n$ by the containing block and add a new cluster root $v_i$ for each non-empty cluster $S_i $.
+		We place the cluster root at position specified by port assignment, if one is given. Otherwise we place it at the projection of the root onto the bounding box of $S_i$
 	
-	
-	First, we cluster the sinks $S = S_1\cdot{\cup}\dots\cdot{\cup} S_n$ by the containing block and add a new cluster root $v_i$ for each non-empty cluster $S_i \neq\emptyset$ ($i\in [k]$).
-	We place  $v_i$ at  the projection of the root onto the bounding box of $S_i$. 
-	In the reuse setting (see Section~\ref{sec:reuse}), we might be given a partial port assignment, i.e. predefined input port positions for some blocks. %TODO {Das muss spaeter noch besser beschrieben werden}
-	
-	
-	Then, we compute a  blockage-avoiding approximate shortest path $r$-arborescence $Y_{top}$ with the cluster roots as sinks.
-	
-	After that we traverse the vertices $v\in V(Y_{top})$ in reverse topological order.
+	\item compute a  blockage-avoiding approximate shortest path $r$-arborescence $Y_{top}$ with the cluster roots as sinks
+	\item traverse the vertices $v\in V(Y_{top})$ in reverse topological order.	
 	Whenever the parent of $v$ is placed in a different block than $B$, the block of $v$, we compute an approximate shortest path $v$-arborescence for the  sinks in $B$ and all vertices of $Y_{top}$ whose parent is in $B$.
-	$Y$ is the union of all these arborescences.
+	Return the union $Y$ is of all these arborescences.
+	\end{enumerate}
 	
-	To embed $Y$ into the 3-dimensional global routing graph, we traverse the vertices $v\in V(Y)$  bottom-up and embed sibling paths $\delta^+(v)$ until they meet near the position of $v$ (see \cite{BRGTiming2}). This embeddding considers the congestion prices and sink delay prices provided by the resource sharing algorithm (see \cite{BRGTiming2}).
-	It is allowed to  introduce detours to avoid congestion and it decides the  layers and wire configuration that greatly determine the signal speed and routing congestion.
+	This way to generate routing topologies ensures:
+	\begin{itemize}
+		\item Only one entry per block for connecting to the sinks inside \\
+		(further connections just going through them are possible)
+		\item Approximate shortest source-sink paths, if no port assignment is given
+		\item Given port assignments are obeyed.
+	\end{itemize}
+
+\textbf{Embedding into Global Routing Graph}	\\
+	To embed $Y$ into the 3-dimensional global routing graph, we traverse the vertices $v\in V(Y)$  bottom-up and embed sibling paths $\delta^+(v)$ until they meet near the position of $v$. This embeddding considers the congestion prices and sink delay prices provided by the resource sharing algorithm (see \cite{BRGTiming2}).
+	It decides the  layers and wire configuration that greatly determine the signal speed and possibly introduces detours to 
 	Crossing  block boundaries is only allowed in the direction of the target $v$.
 	In case of rectangular blocks this avoids zig-zagging along block borders. This embedding is timing- and congestion-aware\\
 \end{blockrow}
@@ -804,7 +798,7 @@ It determines how the net is distributed to the blocks.
 Equivalent reuse blocks (blue) can be mirrored on the x- and y- axis with respect to each other (indicated by {\sffamily F}).
 We assume that we are given an equivalence relation on the terminals in different reuse blocks, with equivalent terminals being at equivalent positions relative to their blocks.
 
-If two terminals  in block  are part of a net $N$, their equivalent terminals in other reuse blocks must also be connected
+If two terminals  in block  are part of the same net $N$, their equivalent terminals in other reuse blocks must also be connected
 to a common net or must both be floating (unconnected). Floating terminals can be eliminated by adding artificial pins and nets.
 %
 We need to achieve port positions at the same relative border positions and equivalent port graphs on the  reuse blocks $B_1,...,B_k$, to be able to use the same routing for all reuse blocks.
@@ -813,7 +807,7 @@ We compute port positions (or more precisely port graph parts) on one arbitraril
 Then, we  force these positions on the other reuse blocks called the \textit{followers} (dashed lines). 
 When doing that naively, multiple problems occur: 	
 \end{minipage}\hfill
-\begin{minipage}{0.25\blockwidth}
+\begin{minipage}{0.2\blockwidth}
 	\centering\begin{tikzpicture}[scale=0.27]
 	\draw[thick,dashed,blue] (0,2.5) rectangle ++ (6,8);
 	\draw[thick,dashed,blue] (6.5,2.5) rectangle ++ (6,8);
@@ -870,13 +864,13 @@ When doing that naively, multiple problems occur:
 	
 	\draw[black] (-0.3,-10.8) rectangle ++ (0.6+6+0.5+6, 0.6+8+8+4+1);
 \end{tikzpicture}
-{\footnotesize \begin{spacing}{0.9}
+{\raggedright\tiny \begin{spacing}{0.9}
 		Feasible Netlist for chip with reuse blocks. Nets are indicated by dashed gray lines.
 \end{spacing}	}
 \end{minipage}
 \begin{enumerate}
 \item \textbf{Neighboring Reuse Blocks}\\
-Assume a port positions for serving sinks in a reuse block is determined. If that port position is lying at the border of a corridor, then the only way to serve that port, and thus the sinks, is by a straight wire segment across that corridor. This determines the port position at the abutting block. To avoid such interdependencies between reuse blocks, we completely block corridors between neighboring reuse continents (gray blockages above).  % TODO add those blockages
+Assume a port positions for serving sinks in a reuse block is given. If that port position is lying at the border of a corridor, then the only way to serve that port, and thus the sinks, is by a straight wire segment across that corridor. This determines the port position at the abutting block. To avoid such interdependencies between reuse blocks, we completely block corridors between neighboring reuse continents (gray blockages above).  % TODO add those blockages
 %TODO make this shorter
 \item \textbf{Blockages around Reuse Blocks}\\
 Due to obstacles around the block borders, port positions that are feasible on the leader might be unreachable by any routing on the followers.
@@ -885,8 +879,7 @@ We align the blockage structure around the reuse blocks by adding a copy of ever
  \begin{minipage}{0.55\blockwidth}
 Port positions that are good for the leader might cause huge unnecessary detours  for the followers.
 To avoid that, we predefine port intervals at the block borders, that the router is forced to route through. We usually allow only a single port to serve the sinks or source in a block.
-We first choose an interval (often just a point) on the boundary such that the worst detour w.r.t. the  $\ell_1$-metric among all equivalent blocks in an individual net routing is minimized. This is a simple geometric problem.
-This interval is then increased  by a constant value to give the router flexibility in avoiding congestion. To roughly align routing in the first pass, we shrink large intervals to some maximal length.
+We first choose an interval (often just a point) on the boundary such that the worst detour w.r.t. the  $\ell_1$-metric among all equivalent blocks in an individual net routing is minimized. 
 
 
 
@@ -961,14 +954,15 @@ This interval is then increased  by a constant value to give the router flexibil
 	
 \end{tikzpicture}	
 \raggedright
-{\footnotesize \begin{spacing}{0.9}
+{\tiny \begin{spacing}{0.9}
 		Possible routing without port intervals. When the port position of this routing from the leader is forced on the follower, a huge detour is caused (dashed).
 		The reuse blockage (orange) was added when aligning the blockage structures around the reuse blocks.
 	\end{spacing}	}
 \end{minipage}
 \vspace{0.3cm}\\
-%It could be preferable to allow $k>1$ pin positions  per net, e.g. if a root in side a reuse block
-has sinks north and south of a block, but has not been necessary yet on our instances.
+%It could be preferable to allow $k>1$ pin positions  per net, e.g. if a root in side a reuse block has sinks north and south of a block, but has not been necessary yet on our instances.
+To give the router flexibility in avoiding congestion, the interval should not be to small. To roughly align routing in the first pass, the interval should not be too large.
+
 %When the pins of a net $N_i$ inside $B_i$ are at the same relative positions as the pins of a net $N_j$ inside $B_j$, the respective port graph parts have to be the same and we say that $(N_j,B_j)\sim (N_j,B_j)$ inducing an an equivalence relation on net-block combinations.
 %When the port positions of the \textit{leader} are forced onto the followers an ideal port position for the net $N_1$ in the leader $B_1$ could cause huge detours for one of the corresponding net-block combinations $(N_j,B_j)\in [(N_1,B_1)]$ in the followers (see \ref{figure}). Even worse, the port position on the leader could even be infeasible for the follower. Our way to avoid such situations that are port intervals (\ref{PIsection}) and additional reuse way to copy blockages \ref{reuseblockagessection}. %Maybe refer to figure
 
@@ -1499,7 +1493,7 @@ The second routing pass with track assignment (only necessary at the borders of 
 \end{tikzpicture}\end{minipage}\\
 \multicolumn{2}{c}{} \\
 \begin{minipage}{0.5\blockwidth}
-	The third routing pass adapts the port assignment on non-reuse blocks to the port positions on reuse blocks. Track assignment is necessary on all border regions of non-reuse blocks.The ports cut from this routing are returned.
+	The third routing pass adapts the port assignment on non-reuse blocks to the port positions on reuse blocks. Track assignment is necessary on all border regions of non-reuse blocks. The ports cut from this routing are returned.
 \end{minipage}&\begin{minipage}{0.49\blockwidth}
 	\centering\begin{tikzpicture}
 		% Parameters
@@ -1699,5 +1693,7 @@ The second routing pass with track assignment (only necessary at the borders of 
 %	\bibliography{samplebib}
 %	\blockfoot
 %\end{blockrow}
-	\bibliography{samplebib.bib}  
+\begin{blockrow}\scriptsize
+	\bibliography{samplebib.bib}
+\end{blockrow}
 \end{document}

@@ -543,7 +543,7 @@ It determines how the net is distributed to the blocks.
 		
 		
 		{	
-			\draw[customviolet,fill, opacity=0.3] (-0.3,1.9) rectangle (12.8,2.6);
+			\draw[customviolet,fill, opacity=0.2] (-0.3,1.9) rectangle (12.8,2.6);
 			\draw[customviolet,fill, opacity=0.3] (-0.3,-1.9) rectangle (12.8,-2.6);
 		}
 		
@@ -757,39 +757,40 @@ It determines how the net is distributed to the blocks.
  			
  		\end{tikzpicture} 
  {\tiny \begin{spacing}{0.9}
- 		Left: global routing solution respecting border and fill gap obstacles, allowing only horizontal routing
- 		Right: pins are added according to wireshapes after track assignment (run only in corridor region)
- 		The dashed blue lines are the block borders, in yellow are the border blockages that block vertical layers.
+ 		The dashed blue lines are the block borders, the border blockages that blocking layers with prefered vertical direction are yellow.\\
+ 		Left: global routing solution respecting border blockages\\
+ 		Right: ports are added according to wireshapes after track assignment (run only in corridor region).
+ 	
  	\end{spacing}	}
  
-	Our routing is done in two steps: we first compute a 2D obstacle-avoiding Steiner tree topology, then we  embed it into the 3D global routing graph.
-
-	\blockbreak
-	\textbf{Routing Topologies}\\
-	We use the following approach to compute 2D Steiner topologies:
-	\begin{enumerate}
-		\item cluster the sinks $S = S_1\cdot{\cup}\dots\cdot{\cup} S_n$ by the containing block and add a new cluster root $v_i$ for each non-empty cluster $S_i $.
-		We place the cluster root at position specified by port assignment, if one is given. Otherwise we place it at the projection of the root onto the bounding box of $S_i$
 	
-	\item compute a  blockage-avoiding approximate shortest path $r$-arborescence $Y_{top}$ with the cluster roots as sinks
-	\item traverse the vertices $v\in V(Y_{top})$ in reverse topological order.	
-	Whenever the parent of $v$ is placed in a different block than $B$, the block of $v$, we compute an approximate shortest path $v$-arborescence for the  sinks in $B$ and all vertices of $Y_{top}$ whose parent is in $B$.
+	\blockbreak
+	Routing is performed in two steps: computing a 2D obstacle-avoiding Steiner topology, then embedding it in the 3D routing graph.
+	
+	\textbf{Routing Topologies}\\
+	We compute 2D Steiner topologies using the following approach:
+	\begin{enumerate}
+		\item Cluster the sinks $S = S_1\cdot{\cup}\dots\cdot{\cup} S_n$ by the containing block and add a new cluster root $v_i$ for each non-empty cluster $S_i $.
+		Place the cluster root at position specified by port assignment, if one is given. Otherwise place it at the projection of the root onto the bounding box of $S_i$
+	
+	\item Compute a  blockage-avoiding approximate shortest path $r$-arborescence $Y_{top}$ with the cluster roots as sinks
+	\item Traverse the vertices $v\in V(Y_{top})$ in reverse topological order.	
+	Whenever the parent of $v$ is placed in a different block than $B$, the block of $v$, compute an approximate shortest path $v$-arborescence for the  sinks in $B$ and all vertices of $Y_{top}$ whose parent is in $B$.
 	Return the union $Y$ is of all these arborescences.
 	\end{enumerate}
 	
-	This way to generate routing topologies ensures:
+	This method ensures:
 	\begin{itemize}
-		\item Only one entry per block for connecting to the sinks inside \\
-		(further connections just going through them are possible)
-		\item Approximate shortest source-sink paths, if no port assignment is given
-		\item Given port assignments are obeyed.
+		\item Only one entry per block for connecting to internal sinks \\
+		(additional connections might pass through the block)
+		\item Approximate shortest source-sink paths when no port assignment is given
+		\item Compliance with given port assignments
 	\end{itemize}
 
 \textbf{Embedding into Global Routing Graph}	\\
-	To embed $Y$ into the 3-dimensional global routing graph, we traverse the vertices $v\in V(Y)$  bottom-up and embed sibling paths $\delta^+(v)$ until they meet near the position of $v$. This embeddding considers the congestion prices and sink delay prices provided by the resource sharing algorithm (see \cite{BRGTiming2}).
-	It decides the  layers and wire configuration that greatly determine the signal speed and possibly introduces detours to 
+	To embed $Y$ into the 3-dimensional global routing graph, we traverse the vertices $v\in V(Y)$  bottom-up and embed sibling paths $\delta^+(v)$ until they meet near the position of $v$. This embedding is timing- and congestion-aware (see \cite{BRGTiming2}). 
 	Crossing  block boundaries is only allowed in the direction of the target $v$.
-	In case of rectangular blocks this avoids zig-zagging along block borders. This embedding is timing- and congestion-aware\\
+	In case of rectangular blocks this avoids zig-zagging along block borders. 
 \end{blockrow}
  \begin{blockrow}
  	
@@ -801,7 +802,7 @@ We assume that we are given an equivalence relation on the terminals in differen
 If two terminals  in block  are part of the same net $N$, their equivalent terminals in other reuse blocks must also be connected
 to a common net or must both be floating (unconnected). Floating terminals can be eliminated by adding artificial pins and nets.
 %
-We need to achieve port positions at the same relative border positions and equivalent port graphs on the  reuse blocks $B_1,...,B_k$, to be able to use the same routing for all reuse blocks.
+To enable identical routing across all reuse blocks, we must ensure port positions at the same relative border locations and equivalent port graphs within these blocks.
 
 We compute port positions (or more precisely port graph parts) on one arbitrarily chosen reuse block that we call the \textit{leader} (solid line). 
 Then, we  force these positions on the other reuse blocks called the \textit{followers} (dashed lines). 
@@ -869,15 +870,15 @@ When doing that naively, multiple problems occur:
 \end{spacing}	}
 \end{minipage}
 \begin{enumerate}
-\item \textbf{Neighboring Reuse Blocks}\\
-Assume a port positions for serving sinks in a reuse block is given. If that port position is lying at the border of a corridor, then the only way to serve that port, and thus the sinks, is by a straight wire segment across that corridor. This determines the port position at the abutting block. To avoid such interdependencies between reuse blocks, we completely block corridors between neighboring reuse continents (gray blockages above).  % TODO add those blockages
+\item \textbf{Neighboring Reuse Blocks}\\ %TODO
+If a port serving sinks in a reuse block is lying at the border of a corridor between two reuse blocks, in which routing parallel to the border are forbidden, then the only way then the only way to reach it is via a straight wire across that corridor. This determines the port position at the abutting block. To avoid such interdependencies between reuse blocks, we completely block corridors between neighboring reuse continents (gray blockages above).  % TODO add those blockages
 %TODO make this shorter
 \item \textbf{Blockages around Reuse Blocks}\\
-Due to obstacles around the block borders, port positions that are feasible on the leader might be unreachable by any routing on the followers.
-We align the blockage structure around the reuse blocks by adding a copy of every blockage within the border region of the reuse blocks to the equivalent positions around the other reuse blocks. With these extra reuse blockages (orange)  we ensure feasibility. port intervals ensure that port positions lie, if possible, on a shortest source sink path.
-\item \textbf{Detours forced by bad Port Positions}\\	
+Due to blockages around the block borders, port positions that are feasible on the leader might be unreachable by any routing on the followers.
+We align the blockage structure around the reuse blocks by adding a copy of every blockage within the border region of the reuse blocks to the equivalent positions around all other reuse blocks. These extra reuse blockages (orange) ensure feasibility. 
+\item \textbf{Detours caused by bad Port Positions}\\	
  \begin{minipage}{0.55\blockwidth}
-Port positions that are good for the leader might cause huge unnecessary detours  for the followers.
+A Port positions that are good for the leader might cause huge unnecessary detours  for the followers.
 To avoid that, we predefine port intervals at the block borders, that the router is forced to route through. We usually allow only a single port to serve the sinks or source in a block.
 We first choose an interval (often just a point) on the boundary such that the worst detour w.r.t. the  $\ell_1$-metric among all equivalent blocks in an individual net routing is minimized. 
 
@@ -929,7 +930,7 @@ We first choose an interval (often just a point) on the boundary such that the w
 	\fill[mustardyellow, opacity=0.4] (\reusewidth + \corridorwidth +\otherwidth- 0.1, 0-\rowheightl) rectangle (\reusewidth +\otherwidth+ 0.1 + 2*\corridorwidth, 0);
 	\fill[mustardyellow!30, opacity=0.4]
 	(\reusewidth - 0.1, 0-\rowheightl) rectangle (\reusewidth + 0.1 + \corridorwidth, 0);
-	\fill[purple!30, opacity=0.4] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
+	\fill[customviolet, opacity=0.2] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
 	\fill[mustardyellow, opacity=0.4] (\uppersmallwidth- 0.1, \corridorwidth) rectangle (\corridorwidth +\uppersmallwidth+ 0.1, \corridorwidth+\rowheightu);
 	\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, \corridorwidth-0.1);
 	\fill[orange] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, \corridorwidth-0.1);
@@ -977,7 +978,7 @@ Feedthroughs might be different in each reuse block, but in the end, all feedthr
 \blockbreak
 \blocktitle{3-Routing-Pass Flow}
 The overall flow to achieve compatible port positions is shown in Algorithm \ref{alg:reuse-alg}.
-We use 3 global routing passes, each with a different purpose, and some preprocessing before each routing pass:
+We use 3 global routing passes, each with a specific purpose, and some preprocessing before each routing pass:
 %TODO is it feedthrough or feethrough???
 \begin{algorithm}[H] 
 	\begin{enumerate}
@@ -987,7 +988,7 @@ We use 3 global routing passes, each with a different purpose, and some preproce
 		% TODO Similarly, add virtual nets connecting floating terminals with the boundary.
 	%	port positions are bound to an interval around the computed routing position.\label{step:create-artificial-feedthroughs} \textcolor{red}{SH: rephrase this step.}
 		\item Add virtual nets between artificial pins representing feedthroughs to reuse blocks \label{step:create-artificial-feedthroughs}
-		\item delete port assignment outside of reuse blocks, relax port positions to intervals \label{step:relaxpositions}
+		\item delete port assignment outside of reuse blocks, relax remaining port positions to intervals \label{step:relaxpositions}
 		\item \textbf{second routing pass w/ track assignment}
 		\item copy pins assignments from the leader to its followers \label{step:copy-pin-assignment}
 		\item delete port assignment outside reuse blocks
@@ -1000,7 +1001,7 @@ We use 3 global routing passes, each with a different purpose, and some preproce
 	\begin{minipage}{0.5\blockwidth}
 	%TODO fix this
 
-		  Port intervals (green) from step \ref{PIstep} and reuse blockages from step \ref{PIstep} ensure that reuse blocks have similar, good and feasible port positions after the first routing pass, which is needed to determine the feedthroughs through reuse blocks.
+		  Port intervals (green) from step \ref{PIstep} and reuse blockages from step \ref{PIstep} ensure that reuse blocks have similar, good and feasible port positions after the first routing pass.The purpose of the first routing pass is determining the feedthroughs through reuse blocks.
 		   	\end{minipage}    &\begin{minipage}{0.49\blockwidth}
 		  \centering\begin{tikzpicture}
 	% Parameters
@@ -1046,7 +1047,7 @@ We use 3 global routing passes, each with a different purpose, and some preproce
 	\fill[mustardyellow, opacity=0.4] (\reusewidth + \corridorwidth +\otherwidth- 0.1, 0-\rowheightl) rectangle (\reusewidth +\otherwidth+ 0.1 + 2*\corridorwidth, 0);
 	\fill[mustardyellow!30, opacity=0.4]
 	(\reusewidth - 0.1, 0-\rowheightl) rectangle (\reusewidth + 0.1 + \corridorwidth, 0);
-	\fill[purple!30, opacity=0.4] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
+	\fill[customviolet, opacity=0.2] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
 	\fill[mustardyellow, opacity=0.4] (\uppersmallwidth- 0.1, \corridorwidth) rectangle (\corridorwidth +\uppersmallwidth+ 0.1, \corridorwidth+\rowheightu);
 	\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, \corridorwidth-0.1);
 	\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, \corridorwidth-0.1);
@@ -1159,7 +1160,7 @@ This may leave overlapping pins. Thus, we relax port positions to intervals (ste
 	\fill[mustardyellow, opacity=0.4] (\reusewidth + \corridorwidth +\otherwidth- 0.1, 0-\rowheightl) rectangle (\reusewidth +\otherwidth+ 0.1 + 2*\corridorwidth, 0);
 	\fill[mustardyellow!30, opacity=0.4]
 	(\reusewidth - 0.1, 0-\rowheightl) rectangle (\reusewidth + 0.1 + \corridorwidth, 0);
-	\fill[purple!30, opacity=0.4] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
+	\fill[customviolet, opacity=0.2] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
 	\fill[mustardyellow, opacity=0.4] (\uppersmallwidth- 0.1, \corridorwidth) rectangle (\corridorwidth +\uppersmallwidth+ 0.1, \corridorwidth+\rowheightu);
 	\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, \corridorwidth-0.1);
 	\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, \corridorwidth-0.1);
@@ -1258,7 +1259,7 @@ This may leave overlapping pins. Thus, we relax port positions to intervals (ste
 \multicolumn{2}{c}{} \\
 \begin{minipage}{0.5\blockwidth}
 
-The second routing pass with track assignment (only necessary at the borders of the leader) legalizes  the port positions the position from the first pass without moving them too much.
+The second routing pass with track assignment (only necessary at the borders of the leader) legalizes  the port positions  from the first pass without moving them too much.
 
 
 
@@ -1307,7 +1308,7 @@ The second routing pass with track assignment (only necessary at the borders of 
 	\fill[mustardyellow, opacity=0.4] (\reusewidth + \corridorwidth +\otherwidth- 0.1, 0-\rowheightl) rectangle (\reusewidth +\otherwidth+ 0.1 + 2*\corridorwidth, 0);
 	\fill[mustardyellow!30, opacity=0.4]
 	(\reusewidth - 0.1, 0-\rowheightl) rectangle (\reusewidth + 0.1 + \corridorwidth, 0);
-	\fill[purple!30, opacity=0.4] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
+	\fill[customviolet, opacity=0.2] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
 	\fill[mustardyellow, opacity=0.4] (\uppersmallwidth- 0.1, \corridorwidth) rectangle (\corridorwidth +\uppersmallwidth+ 0.1, \corridorwidth+\rowheightu);
 	\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, \corridorwidth-0.1);
 	\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, \corridorwidth-0.1);
@@ -1433,7 +1434,7 @@ The second routing pass with track assignment (only necessary at the borders of 
 		\fill[mustardyellow, opacity=0.4] (\reusewidth + \corridorwidth +\otherwidth- 0.1, 0-\rowheightl) rectangle (\reusewidth +\otherwidth+ 0.1 + 2*\corridorwidth, 0);
 		\fill[mustardyellow!30, opacity=0.4]
 		(\reusewidth - 0.1, 0-\rowheightl) rectangle (\reusewidth + 0.1 + \corridorwidth, 0);
-		\fill[purple!30, opacity=0.4] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
+		\fill[customviolet, opacity=0.2] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
 		\fill[mustardyellow, opacity=0.4] (\uppersmallwidth- 0.1, \corridorwidth) rectangle (\corridorwidth +\uppersmallwidth+ 0.1, \corridorwidth+\rowheightu);
 		\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, \corridorwidth-0.1);
 		\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, \corridorwidth-0.1);
@@ -1527,7 +1528,7 @@ The second routing pass with track assignment (only necessary at the borders of 
 		\fill[mustardyellow, opacity=0.4] (\reusewidth + \corridorwidth +\otherwidth- 0.1, 0-\rowheightl) rectangle (\reusewidth +\otherwidth+ 0.1 + 2*\corridorwidth, 0);
 		\fill[mustardyellow!30, opacity=0.4]
 		(\reusewidth - 0.1, 0-\rowheightl) rectangle (\reusewidth + 0.1 + \corridorwidth, 0);
-		\fill[purple!30, opacity=0.4] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
+		\fill[customviolet, opacity=0.2] (0, 0-0.1) rectangle (2*\reusewidth +\otherwidth + 2*\corridorwidth, 0+\corridorwidth+0.1);
 		\fill[mustardyellow, opacity=0.4] (\uppersmallwidth- 0.1, \corridorwidth) rectangle (\corridorwidth +\uppersmallwidth+ 0.1, \corridorwidth+\rowheightu);
 		\fill[gray] (\uppersmallwidth-0.1, \corridorwidth+0.1) rectangle (\uppersmallwidth+0.1+\corridorwidth, \corridorwidth-0.1);
 		\fill[gray] (2*\reusewidth+2*\corridorwidth +\otherwidth-\uppersmallwidth+0.1, \corridorwidth+0.1) rectangle (2*\reusewidth+\corridorwidth +\otherwidth-\uppersmallwidth-0.1, \corridorwidth-0.1);

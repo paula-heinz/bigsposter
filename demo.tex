@@ -410,6 +410,7 @@
     		\draw[thick,dashed,blue] (0,1) rectangle ++ (7,3);
     		\draw[thick,dashed,red] (0,4.3) rectangle ++ (5.5,5);
     		\draw[thick,dashed,green] (5.8,4.3) rectangle ++ (5.5,5);
+    		\draw[thick,dashed,pink] (7.3,1) rectangle ++ (4,3);
     		\draw[black] (-0.3,0.7) rectangle ++ (12.1,8.9);
     		
     		\node[fill=red, scale=0.6] (root) at (4,8){};
@@ -419,9 +420,10 @@
     		\node[shape=circle,fill=green!60!black,scale=0.4] (port1) at (7,3){};
     		\node[shape=circle,fill=green!60!black,scale=0.4] (port3) at (4,4){};
     		\node[shape=circle,fill=green!60!black,scale=0.4] (port4) at (4,4.3){};
+    		\node[shape=circle,fill=green!60!black,scale=0.4] (port2) at (7.3,3){};
     		
-    		\draw[-] (4,3) -- (port1) -- (sink);
-    		\draw[-] (root) -- (port3) -- (port4) -- (sink2);
+    		\draw[-] (4,3) -- (port2) -- (port1) -- (sink);
+    		\draw[-] (root)  -- (port3) -- (port4) -- (sink2);
     	\end{tikzpicture}
     \end{minipage}\\
 
